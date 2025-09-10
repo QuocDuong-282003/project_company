@@ -1,18 +1,23 @@
-# backend/odm_models.py
-
 from beanie import Document, Indexed
+from pydantic import Field
 from typing import List, Optional
+from datetime import datetime
 
 class User(Document):
+    # KHÔNG CẦN TRƯỜNG 'id' Ở ĐÂY, Beanie tự quản lý _id
+    
     name: str
     user_code: Indexed(str, unique=True)
+    email: Indexed(str, unique=True)
+    role: str
     
-    # THÊM 2 TRƯỜNG MỚI
-    email: Indexed(str, unique=True) # Email cũng nên là duy nhất
-    role: str # Vai trò/Chức vụ
+    is_admin: bool = Field(default=False)
+    password: Optional[str] = None 
     
-    face_encodings: List[bytes]
+    face_encodings: Optional[List[bytes]] = None
     face_image_base64: Optional[str] = None
+    
+    created_at: datetime = Field(default_factory=datetime.utcnow)
 
     class Settings:
         name = "users"
