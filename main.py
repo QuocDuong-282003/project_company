@@ -1,3 +1,4 @@
+# backend/main.py (PHIÊN BẢN SỬA LỖI TRÙNG LẶP)
 
 import base64
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Depends, Body
@@ -24,7 +25,6 @@ from .auth_utils import (
     verify_password, get_password_hash, create_access_token
 )
 from .email_utils import send_password_reset_email
-
 
 env_path = Path(__file__).parent / '.env'
 load_dotenv(dotenv_path=env_path)
@@ -79,6 +79,7 @@ async def register_endpoint(
     name: str = Form(...), user_code: str = Form(...), email: EmailStr = Form(...), 
     role: str = Form(...), file: UploadFile = File(...)
 ):
+    # Các check này hoạt động tốt nhất khi có unique index trong DB
     if await User.find_one(User.user_code == user_code):
         raise HTTPException(status_code=400, detail="Mã số đã tồn tại")
     if await User.find_one(User.email == email):
@@ -88,11 +89,13 @@ async def register_endpoint(
     image = bytes_to_cv2_img(image_bytes)
     rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     
-    new_face_encodings = face_recognition.face_encodings(rgb_image)
-    if not new_face_encodings:
+    face_locations = face_recognition.face_locations(rgb_image)
+    if not face_locations:
         raise HTTPException(status_code=400, detail="Không tìm thấy khuôn mặt trong ảnh để đăng ký")
-        
-    new_face_encoding = new_face_encodings[0]
+    if len(face_locations) > 1:
+        raise HTTPException(status_code=400, detail="Phát hiện nhiều hơn 1 khuôn mặt, vui lòng chỉ chụp một người")
+
+    new_face_encoding = face_recognition.face_encodings(rgb_image, face_locations)[0]
     
     all_users = await User.find(User.is_admin == False, User.face_encodings != None).to_list()
     if all_users:
@@ -103,7 +106,9 @@ async def register_endpoint(
                     existing_encodings.append(pickle.loads(enc))
         
         if existing_encodings:
-            matches = face_recognition.compare_faces(existing_encodings, new_face_encoding, tolerance=0.5)
+            # === THAY ĐỔI QUAN TRỌNG: Tăng tolerance để nhận diện tốt hơn ===
+            # Giá trị 0.6 là mặc định và được khuyến nghị, linh hoạt hơn 0.5
+            matches = face_recognition.compare_faces(existing_encodings, new_face_encoding, tolerance=0.6)
             if True in matches:
                 raise HTTPException(status_code=400, detail="Khuôn mặt này đã được đăng ký.")
 
@@ -119,22 +124,25 @@ async def register_endpoint(
 
 @app.post("/login-recognize")
 async def login_recognize_endpoint(file: UploadFile = File(...)):
+    print("--- ĐANG CHẠY PHIÊN BẢN CODE MỚI NHẤT ---") 
     image_bytes = await file.read()
     image = bytes_to_cv2_img(image_bytes)
     rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     
     face_locations = face_recognition.face_locations(rgb_image)
+
     if not face_locations:
-        return {"name": "Unknown", "box": None, "role": None, "image_base64": None}
+        return {"status": "NO_FACE", "message": "Không tìm thấy khuôn mặt nào.", "data": None}
+
     if len(face_locations) > 1:
-        return {"name": "Error: Multiple Faces", "box": None, "role": None, "image_base64": None}
+        return {"status": "MULTIPLE_FACES", "message": "Phát hiện nhiều hơn một khuôn mặt.", "data": None}
         
     unknown_encoding = face_recognition.face_encodings(rgb_image, face_locations)[0]
     box = face_locations[0]
     
     all_users = await User.find(User.is_admin == False, User.face_encodings != None).to_list()
     if not all_users:
-         return {"name": "Unknown", "box": box, "role": None, "image_base64": None}
+         return {"status": "UNKNOWN", "message": "Không có dữ liệu người dùng.", "data": {"name": "Unknown", "box": box, "role": None, "image_base64": None}}
          
     known_encodings = []
     known_user_data = []
@@ -145,22 +153,26 @@ async def login_recognize_endpoint(file: UploadFile = File(...)):
                 known_user_data.append({"name": user.name, "role": user.role, "image_base64": user.face_image_base64})
             
     if not known_encodings:
-        return {"name": "Unknown", "box": box, "role": None, "image_base64": None}
+        return {"status": "UNKNOWN", "message": "Không có dữ liệu khuôn mặt.", "data": {"name": "Unknown", "box": box, "role": None, "image_base64": None}}
         
-    matches = face_recognition.compare_faces(known_encodings, unknown_encoding, tolerance=0.5)
+    # === THAY ĐỔI: Tăng tolerance cho login để nhất quán với register ===
+    matches = face_recognition.compare_faces(known_encodings, unknown_encoding, tolerance=0.6)
     face_distances = face_recognition.face_distance(known_encodings, unknown_encoding)
-    best_match_index = np.argmin(face_distances)
     
-    name, role, image_base64 = "Unknown", None, None
-    if matches[best_match_index]:
-        matched_user_data = known_user_data[best_match_index]
-        name = matched_user_data["name"]
-        role = matched_user_data["role"]
-        image_base64 = matched_user_data["image_base64"]
-        
-    return {"name": name, "box": box, "role": role, "image_base64": image_base64}
+    if True in matches:
+        best_match_index = np.argmin(face_distances)
+        if matches[best_match_index]: # Kiểm tra lại xem match tốt nhất có thực sự là match không
+            matched_user_data = known_user_data[best_match_index]
+            return {
+                "status": "SUCCESS", "message": "Nhận dạng thành công.",
+                "data": {"name": matched_user_data["name"], "role": matched_user_data["role"], "image_base64": matched_user_data["image_base64"], "box": box}
+            }
 
-# ---  API ADMIN ---
+    return {"status": "UNKNOWN", "message": "Không nhận dạng được khuôn mặt.", "data": {"name": "Unknown", "box": box, "role": None, "image_base64": None}}
+
+# ---  API ADMIN (Không thay đổi) ---
+# ... (giữ nguyên phần code API Admin của bạn) ...
+# (Phần còn lại của file giữ nguyên)
 
 class AdminRegisterForm(BaseModel):
     name: str
@@ -242,17 +254,6 @@ async def reset_password(form_data: ResetPasswordForm):
     await user.update({"$set": {"password": hashed_password}})
     return {"message": "Password has been reset successfully."}
 
-# @app.get("/system-admin/users", response_model=List[AdminUserOut], tags=["Admin Management"])
-# async def get_all_users_for_admin(admin: User = Depends(get_current_admin_user)):
-    users = await User.find_all().to_list()
-    
-    results = []
-    for user in users:
-        user_data = user.model_dump()
-        user_data["id"] = str(user.id) 
-        results.append(AdminUserOut(**user_data))
-        
-    return results
 @app.get("/system-admin/users", response_model=List[AdminUserOut], tags=["Admin Management"])
 async def get_all_normal_users(admin: User = Depends(get_current_admin_user)):
     users = await User.find(User.is_admin == False).to_list()
@@ -307,3 +308,4 @@ async def delete_user_by_admin(user_id: str, admin: User = Depends(get_current_a
 
     await user_to_delete.delete()
     return {"status": "success", "message": f"User {user_to_delete.name} deleted"}
+
