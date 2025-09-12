@@ -1,0 +1,239 @@
+.app-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.content-wrapper {
+  flex-grow: 1;
+  padding: 20px;
+}
+
+/* --- Header --- */
+.app-header {
+  background-color: #ffffff;
+  padding: 0 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #e0e0e0;
+  height: 64px;
+}
+
+.logo {
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+  text-decoration: none;
+}
+
+.main-nav {
+  display: flex;
+  gap: 15px;
+}
+
+.nav-link {
+  text-decoration: none;
+  color: #555;
+  padding: 10px 15px;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.nav-link:hover {
+  background-color: #f0f2f5;
+}
+
+.nav-link.active {
+  background-color: #007bff;
+  color: white;
+}
+
+/* --- Các trang --- */
+.page-container {
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 30px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  text-align: center;
+}
+
+.login-page .webcam-container {
+  margin: 0 auto;
+}
+
+/* --- Trang chủ --- */
+.home-actions {
+  margin-top: 30px;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.action-button {
+  display: inline-block;
+  padding: 12px 24px;
+  background-color: #6c757d;
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: bold;
+}
+
+.action-button.primary {
+  background-color: #007bff;
+}
+
+/* --- Thông báo Welcome --- */
+.welcome-message {
+  padding: 50px;
+  text-align: center;
+}
+
+.welcome-message h2 {
+  font-size: 32px;
+  color: #28a745;
+}
+
+.welcome-message p {
+  font-size: 24px;
+  color: #333;
+}
+
+/* Thêm vào cuối file src/index.css */
+
+.welcome-avatar {
+  margin-top: 20px;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  /* Bo tròn ảnh */
+  object-fit: cover;
+  /* Đảm bảo ảnh không bị méo */
+  border: 5px solid #4caf50;
+  /* Thêm viền xanh cho đẹp */
+}
+
+
+.user-role {
+  font-size: 18px;
+  color: #555;
+  margin-top: 10px;
+}
+
+.welcome-message h3 {
+  margin-top: 15px;
+  margin-bottom: 5px;
+  font-size: 28px;
+}
+
+
+/* Canh giữa các trang và form */
+.page-container, .step-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* Canh giữa theo chiều ngang */
+  text-align: center;
+  max-width: 700px;
+  margin: 40px auto;
+  padding: 30px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Style cho Form đăng ký */
+form {
+  width: 100%;
+  max-width: 400px;
+  /* Giới hạn độ rộng của form */
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  /* Khoảng cách giữa các input */
+}
+
+input {
+  width: calc(100% - 24px);
+  /* Điều chỉnh lại width */
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+/* Canh giữa giao diện Webcam */
+.webcam-capture-container, .webcam-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 20px auto;
+  /* Thêm auto để căn giữa */
+}
+
+.submit-form {
+  display: ruby;
+}
+
+.btn {
+  border-radius: 4px;
+  height: 30px;
+  width: 150px;
+  border: none;
+  background-color: #1f7ee4;
+  font-weight: 300;
+  cursor: pointer;
+}
+
+.btn:hover {
+  background-color: red;
+  color: yellow;
+}
+
+
+/* Canh giữa các trang và form */
+.page-container, .step-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 700px;
+  margin: 40px auto;
+  padding: 30px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Style cho Form đăng ký */
+form {
+  width: 100%;
+  max-width: 400px;
+  /* Giới hạn độ rộng của form */
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  /* Khoảng cách giữa các input */
+}
+
+input {
+  width: calc(100% - 24px);
+  /* Điều chỉnh lại width */
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+/* Canh giữa giao diện Webcam */
+.webcam-capture-container, .webcam-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 20px auto;
+  /* Thêm auto để căn giữa */
+}
