@@ -1,4 +1,4 @@
-# backend/main.py (PHIÊN BẢN SỬA LỖI TRÙNG LẶP)
+# backend/main.py (PHIÊN BẢN SỬA LỖI AttributeError 500)
 
 import base64
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Depends, Body
@@ -21,10 +21,9 @@ from .database import init_db
 from .odm_models import User
 from .schemas import UserOut, AdminUserOut, UserUpdate
 from .face_validator import analyze_face
-from .auth_utils import (
-    verify_password, get_password_hash, create_access_token
-)
+from .auth_utils import verify_password, get_password_hash, create_access_token
 from .email_utils import send_password_reset_email
+from .face_detector import detect_faces_opencv
 
 env_path = Path(__file__).parent / '.env'
 load_dotenv(dotenv_path=env_path)
@@ -32,26 +31,19 @@ load_dotenv(dotenv_path=env_path)
 app = FastAPI(title="Face Recognition API")
 app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:5173"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
-# ---  XÁC THỰC ADMIN ( JWT) ---
+# --- XÁC THỰC ADMIN (JWT) ---
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/system-admin/login-form")
-
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM")
 
 async def get_current_admin_user(token: str = Depends(oauth2_scheme)):
-    credentials_exception = HTTPException(
-        status_code=401,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
+    credentials_exception = HTTPException(status_code=401, detail="Could not validate credentials", headers={"WWW-Authenticate": "Bearer"})
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id: str = payload.get("sub")
-        if user_id is None:
-            raise credentials_exception
+        if user_id is None: raise credentials_exception
     except JWTError:
         raise credentials_exception
-    
     user = await User.get(ObjectId(user_id))
     if user is None or not user.is_admin:
         raise credentials_exception
@@ -79,7 +71,6 @@ async def register_endpoint(
     name: str = Form(...), user_code: str = Form(...), email: EmailStr = Form(...), 
     role: str = Form(...), file: UploadFile = File(...)
 ):
-    # Các check này hoạt động tốt nhất khi có unique index trong DB
     if await User.find_one(User.user_code == user_code):
         raise HTTPException(status_code=400, detail="Mã số đã tồn tại")
     if await User.find_one(User.email == email):
@@ -87,27 +78,20 @@ async def register_endpoint(
 
     image_bytes = await file.read()
     image = bytes_to_cv2_img(image_bytes)
-    rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     
-    face_locations = face_recognition.face_locations(rgb_image)
+    face_locations = detect_faces_opencv(image)
     if not face_locations:
         raise HTTPException(status_code=400, detail="Không tìm thấy khuôn mặt trong ảnh để đăng ký")
     if len(face_locations) > 1:
         raise HTTPException(status_code=400, detail="Phát hiện nhiều hơn 1 khuôn mặt, vui lòng chỉ chụp một người")
 
+    rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     new_face_encoding = face_recognition.face_encodings(rgb_image, face_locations)[0]
     
     all_users = await User.find(User.is_admin == False, User.face_encodings != None).to_list()
     if all_users:
-        existing_encodings = []
-        for user in all_users:
-            if user.face_encodings:
-                for enc in user.face_encodings:
-                    existing_encodings.append(pickle.loads(enc))
-        
+        existing_encodings = [pickle.loads(enc) for user in all_users if user.face_encodings for enc in user.face_encodings]
         if existing_encodings:
-            # === THAY ĐỔI QUAN TRỌNG: Tăng tolerance để nhận diện tốt hơn ===
-            # Giá trị 0.6 là mặc định và được khuyến nghị, linh hoạt hơn 0.5
             matches = face_recognition.compare_faces(existing_encodings, new_face_encoding, tolerance=0.6)
             if True in matches:
                 raise HTTPException(status_code=400, detail="Khuôn mặt này đã được đăng ký.")
@@ -124,25 +108,23 @@ async def register_endpoint(
 
 @app.post("/login-recognize")
 async def login_recognize_endpoint(file: UploadFile = File(...)):
-    print("--- ĐANG CHẠY PHIÊN BẢN CODE MỚI NHẤT ---") 
     image_bytes = await file.read()
     image = bytes_to_cv2_img(image_bytes)
-    rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     
-    face_locations = face_recognition.face_locations(rgb_image)
-
+    face_locations = detect_faces_opencv(image)
     if not face_locations:
         return {"status": "NO_FACE", "message": "Không tìm thấy khuôn mặt nào.", "data": None}
-
     if len(face_locations) > 1:
         return {"status": "MULTIPLE_FACES", "message": "Phát hiện nhiều hơn một khuôn mặt.", "data": None}
         
+    rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     unknown_encoding = face_recognition.face_encodings(rgb_image, face_locations)[0]
     box = face_locations[0]
+    box_for_json = tuple(map(int, box))
     
     all_users = await User.find(User.is_admin == False, User.face_encodings != None).to_list()
     if not all_users:
-         return {"status": "UNKNOWN", "message": "Không có dữ liệu người dùng.", "data": {"name": "Unknown", "box": box, "role": None, "image_base64": None}}
+         return {"status": "UNKNOWN", "message": "Không có dữ liệu người dùng.", "data": {"name": "Unknown", "box": box_for_json, "role": None, "image_base_64": None}}
          
     known_encodings = []
     known_user_data = []
@@ -150,30 +132,34 @@ async def login_recognize_endpoint(file: UploadFile = File(...)):
         if user.face_encodings:
             for enc_bytes in user.face_encodings:
                 known_encodings.append(pickle.loads(enc_bytes))
-                known_user_data.append({"name": user.name, "role": user.role, "image_base64": user.face_image_base64})
+                # === SỬA LỖI AttributeError ===
+                # Sử dụng getattr để truy cập 'face_image_base64' một cách an toàn.
+                # Nếu thuộc tính không tồn tại trên đối tượng user, nó sẽ trả về None.
+                known_user_data.append({
+                    "name": user.name,
+                    "role": user.role,
+                    "image_base_64": getattr(user, 'face_image_base64', None)
+                })
             
     if not known_encodings:
-        return {"status": "UNKNOWN", "message": "Không có dữ liệu khuôn mặt.", "data": {"name": "Unknown", "box": box, "role": None, "image_base64": None}}
+        return {"status": "UNKNOWN", "message": "Không có dữ liệu khuôn mặt.", "data": {"name": "Unknown", "box": box_for_json, "role": None, "image_base_64": None}}
         
-    # === THAY ĐỔI: Tăng tolerance cho login để nhất quán với register ===
     matches = face_recognition.compare_faces(known_encodings, unknown_encoding, tolerance=0.6)
     face_distances = face_recognition.face_distance(known_encodings, unknown_encoding)
     
     if True in matches:
         best_match_index = np.argmin(face_distances)
-        if matches[best_match_index]: # Kiểm tra lại xem match tốt nhất có thực sự là match không
+        if matches[best_match_index]:
             matched_user_data = known_user_data[best_match_index]
             return {
                 "status": "SUCCESS", "message": "Nhận dạng thành công.",
-                "data": {"name": matched_user_data["name"], "role": matched_user_data["role"], "image_base64": matched_user_data["image_base64"], "box": box}
+                "data": {**matched_user_data, "box": box_for_json}
             }
 
-    return {"status": "UNKNOWN", "message": "Không nhận dạng được khuôn mặt.", "data": {"name": "Unknown", "box": box, "role": None, "image_base64": None}}
+    return {"status": "UNKNOWN", "message": "Không nhận dạng được khuôn mặt.", "data": {"name": "Unknown", "box": box_for_json, "role": None, "image_base_64": None}}
 
-# ---  API ADMIN (Không thay đổi) ---
-# ... (giữ nguyên phần code API Admin của bạn) ...
+# ---  API ADMIN ---
 # (Phần còn lại của file giữ nguyên)
-
 class AdminRegisterForm(BaseModel):
     name: str
     user_code: str
@@ -308,4 +294,3 @@ async def delete_user_by_admin(user_id: str, admin: User = Depends(get_current_a
 
     await user_to_delete.delete()
     return {"status": "success", "message": f"User {user_to_delete.name} deleted"}
-
