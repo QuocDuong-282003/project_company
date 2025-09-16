@@ -2,11 +2,14 @@
 import React, { useState } from 'react';
 import apiClient from '../../api/apiClient';
 import { useNavigate, Link } from 'react-router-dom';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import './AdminLoginPage.css';
 
 const AdminLoginPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
@@ -29,28 +32,47 @@ const AdminLoginPage = () => {
     };
 
     return (
-        <div className="page-container" style={{ maxWidth: '500px' }}>
-            <h2>Admin Login</h2>
-            <form onSubmit={handleSubmit}>
-                <input
-                    type="email"
-                    placeholder="Email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                />
-                <input
-                    type="password"
-                    placeholder="Mật khẩu"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                />
-                <button type="submit">Đăng nhập</button>
-            </form>
-            {error && <p style={{ color: 'red', marginTop: '10px' }}>{error}</p>}
-            <div style={{ marginTop: '20px' }}>
-                <Link to="/system-admin/forgot-password">Quên mật khẩu?</Link> | <Link to="/system-admin/register">Đăng ký Admin</Link>
+        <div className='page-container-login'>
+
+
+            <div className="admin-login-container">
+                <h2 className="admin-login-title">Đăng nhập Admin</h2>
+                <form className="admin-login-form" onSubmit={handleSubmit}>
+                    <div className="form-group">
+                        <input
+                            type="email"
+                            placeholder="Email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
+                        />
+                    </div>
+                    <div className="form-group">
+                        <input
+                            type={showPassword ? 'text' : 'password'}
+                            placeholder="Mật khẩu"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword((prev) => !prev)}
+                            className="toggle-password-btn"
+                            tabIndex={-1}
+                            aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                        >
+                            {showPassword ? <FaEyeSlash /> : <FaEye />}
+                        </button>
+                    </div>
+                    <button className="admin-login-btn" type="submit">Đăng nhập</button>
+                </form>
+                {error && <p className="admin-login-message error">{error}</p>}
+                <div style={{ marginTop: '24px', textAlign: 'center', fontSize: '1rem' }}>
+                    <Link className="admin-login-link" to="/system-admin/forgot-password">Quên mật khẩu?</Link>
+                    <span style={{ margin: '0 8px' }}></span>
+                    <Link className="admin-login-link" to="/system-admin/register">Đăng ký Admin</Link>
+                </div>
             </div>
         </div>
     );

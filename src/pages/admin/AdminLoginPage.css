@@ -1,0 +1,118 @@
+.page-container-login {
+    margin-top: 30px;
+}
+
+.admin-login-container {
+    max-width: 400px;
+    margin: 40px auto;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+    padding: 32px 24px 24px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.admin-login-title {
+    margin-bottom: 30px;
+    font-size: 1.7rem;
+    font-weight: 700;
+    color: #2d3748;
+    text-align: center;
+}
+
+.admin-login-form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.form-group {
+    width: 100%;
+    position: relative;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 10px 14px;
+    padding-right: 40px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 1rem;
+    background: #f7fafc;
+    transition: border-color 0.2s;
+}
+
+.toggle-password-btn {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2rem;
+    color: #3182ce;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    transition: color 0.2s;
+}
+
+.toggle-password-btn:hover {
+    color: #2563eb;
+}
+
+.form-group input:focus {
+    border-color: #3183ce;
+    outline: none;
+    background: #fff;
+}
+
+.admin-login-btn {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(90deg, #3183ce 0%, #63b3ed 100%);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-top: 8px;
+    box-shadow: 0 2px 8px rgba(49, 130, 206, 0.08);
+    transition: background 0.2s;
+}
+
+.admin-login-btn:hover {
+    background: linear-gradient(90deg, #2563ed, #4299e1 100%);
+}
+
+.admin-login-message {
+    margin-top: 16px;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.admin-login-message.error {
+    color: red;
+}
+
+.admin-login-message.success {
+    color: green;
+}
+
+.admin-login-link {
+    margin-top: 10px;
+    display: block;
+    color: #3183ce;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 1rem;
+    transition: color 0.2s;
+}
+
+.admin-login-link:hover {
+    color: #2563eb;
+    text-decoration: underline;
+}

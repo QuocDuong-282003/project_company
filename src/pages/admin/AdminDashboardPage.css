@@ -2,21 +2,24 @@
 
 .dashboard-page-container {
     width: 100%;
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 20px auto;
     padding: 20px;
     font-family: Arial, sans-serif;
 }
 
 .dashboard-page-container h2 {
-    font-size: 24px;
+    font-size: 2.2rem;
     color: #333;
-    margin-bottom: 20px;
+    margin-bottom: 24px;
+    text-align: center;
+    font-weight: 700;
 }
 
 /* Bảng dữ liệu */
 .user-table {
     width: 100%;
+    min-width: 1100px;
     border-collapse: collapse;
     background-color: #fff;
     border-radius: 8px;
@@ -26,7 +29,7 @@
 
 .user-table th,
 .user-table td {
-    padding: 12px 15px;
+    padding: 16px 20px;
     text-align: left;
     border-bottom: 1px solid #ddd;
 }
@@ -36,7 +39,7 @@
     color: #333;
     font-weight: 600;
     text-transform: uppercase;
-    font-size: 12px;
+    font-size: 1.05rem;
 }
 
 .user-table tr:last-child td {
@@ -49,7 +52,9 @@
 
 .user-table td small {
     color: #666;
-    font-size: 12px;
+    font-size: 0.95em;
+    display: block;
+    margin-top: 2px;
 }
 
 /* Nút thao tác */
@@ -132,8 +137,9 @@
     padding: 25px;
     border-radius: 8px;
     width: 90%;
-    max-width: 500px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    font-size: 1rem;
+    color: #2c3e50;
+    vertical-align: middle;
 }
 
 .modal-content h2 {

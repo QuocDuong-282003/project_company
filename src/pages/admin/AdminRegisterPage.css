@@ -1,0 +1,95 @@
+.admin-register-container {
+    max-width: 400px;
+    margin: 40px auto;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+    padding: 32px 24px 24px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.admin-register-title {
+    margin-bottom: 24px;
+    font-size: 1.7rem;
+    font-weight: 700;
+    color: #2d3748;
+    text-align: center;
+}
+
+.admin-register-form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.form-group {
+    width: 100%;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 1rem;
+    background: #f7fafc;
+    transition: border-color 0.2s;
+}
+
+.form-group input:focus {
+    border-color: #3182ce;
+    outline: none;
+    background: #fff;
+}
+
+.admin-register-btn {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(90deg, #3182ce 0%, #63b3ed 100%);
+    color: #fff;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 8px;
+    box-shadow: 0 2px 8px rgba(49, 130, 206, 0.08);
+    transition: background 0.2s;
+}
+
+.admin-register-btn:hover {
+    background: linear-gradient(90deg, #2563eb 0%, #4299e1 100%);
+}
+
+.admin-register-message {
+    margin-top: 16px;
+    font-size: 1rem;
+    text-align: center;
+}
+
+.admin-register-message.success {
+    color: #38a169;
+}
+
+.admin-register-message.error {
+    color: #e53e3e;
+}
+
+.admin-register-link {
+    margin-top: 24px;
+    display: block;
+    text-align: center;
+    color: #3182ce;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 1rem;
+    transition: color 0.2s;
+}
+
+.admin-register-link:hover {
+    color: #2563eb;
+    text-decoration: underline;
+}

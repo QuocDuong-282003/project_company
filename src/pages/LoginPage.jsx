@@ -1,8 +1,7 @@
-// src/pages/LoginPage.jsx
-
 import React, { useRef, useState, useCallback, useEffect } from 'react';
 import Webcam from 'react-webcam';
 import apiClient from '../api/apiClient';
+import './LoginPage.css';
 
 const LoginPage = () => {
     const webcamRef = useRef(null);
@@ -10,9 +9,10 @@ const LoginPage = () => {
     const [loggedInUser, setLoggedInUser] = useState(null);
     const [errorMessage, setErrorMessage] = useState('');
     const recognitionIntervalRef = useRef(null);
+    const [isPaused, setIsPaused] = useState(false); // State để tạm dừng quét
 
     const captureAndRecognize = useCallback(async () => {
-        if (!webcamRef.current || loggedInUser) return;
+        if (!webcamRef.current || loggedInUser || isPaused) return;
 
         const imageSrc = webcamRef.current.getScreenshot();
         if (!imageSrc) return;
@@ -25,74 +25,69 @@ const LoginPage = () => {
 
         try {
             const response = await apiClient.post('/login-recognize', formData);
-
-            // === THAY ĐỔI BẮT ĐẦU TỪ ĐÂY ===
-
-            // Lấy cấu trúc phản hồi mới từ API
             const { status, message, data } = response.data;
 
-            // Dùng switch-case để xử lý từng trạng thái một cách rõ ràng
             switch (status) {
                 case 'SUCCESS':
-                    // Chỉ khi thành công mới đăng nhập người dùng
-                    setErrorMessage(''); // Xóa thông báo lỗi cũ
+                    setErrorMessage('');
                     setRecognitionResult({ name: data.name, box: data.box });
-                    setLoggedInUser({ name: data.name, role: data.role, image_base64: data.image_base64 });
+                    setLoggedInUser({ name: data.name, role: data.role, image_base_64: data.image_base_64 });
                     break;
 
                 case 'MULTIPLE_FACES':
-                    // Đây là trường hợp quan trọng cần xử lý
-                    // Hiển thị lỗi và KHÔNG làm gì thêm. Vòng lặp sẽ tiếp tục ở khung hình sau.
-                    setErrorMessage(message);
-                    setRecognitionResult({ name: null, box: null }); // Ẩn khung nhận diện cũ
+                    setErrorMessage(message); // Hiển thị thông báo lỗi
+                    setRecognitionResult({ name: null, box: null });
+                    setIsPaused(true); // Dừng quét lại
                     break;
 
                 case 'UNKNOWN':
-                    setErrorMessage(''); // Không cần báo lỗi, chỉ cần hiển thị tên "Unknown"
+                    setErrorMessage('');
                     setRecognitionResult({ name: data.name, box: data.box });
                     break;
-
                 case 'NO_FACE':
-                    setErrorMessage(''); // Xóa lỗi, vì đây là trạng thái bình thường
-                    setRecognitionResult({ name: null, box: null }); // Không có mặt thì không có khung
+                    setErrorMessage('');
+                    setRecognitionResult({ name: null, box: null });
                     break;
-
                 default:
-                    // Các trường hợp khác
                     setErrorMessage('Trạng thái không xác định từ server.');
                     setRecognitionResult({ name: null, box: null });
                     break;
             }
-
-            // === KẾT THÚC THAY ĐỔI ===
-
         } catch (error) {
-            // Xử lý khi API trả về lỗi HTTP (ví dụ 400, 500)
             const errorDetail = error.response?.data?.detail || "Lỗi kết nối máy chủ.";
             console.error("Lỗi nhận diện đăng nhập:", errorDetail);
-            setErrorMessage(errorDetail); // Hiển thị lỗi từ server nếu có
+            setErrorMessage(errorDetail);
             setRecognitionResult({ name: null, box: null });
+            setIsPaused(true); // Dừng quét khi có lỗi kết nối
         }
-    }, [loggedInUser]);
+    }, [loggedInUser, isPaused]);
 
     useEffect(() => {
-        // Logic này đã đúng, không cần thay đổi
-        if (!loggedInUser) {
+        if (!loggedInUser && !isPaused) {
             recognitionIntervalRef.current = setInterval(captureAndRecognize, 1500);
-        }
-
-        return () => {
+        } else {
             if (recognitionIntervalRef.current) {
                 clearInterval(recognitionIntervalRef.current);
                 recognitionIntervalRef.current = null;
             }
+        }
+        return () => {
+            if (recognitionIntervalRef.current) {
+                clearInterval(recognitionIntervalRef.current);
+            }
         };
-    }, [captureAndRecognize, loggedInUser]);
+    }, [captureAndRecognize, loggedInUser, isPaused]);
 
     const handleGoBackToLogin = () => {
         setLoggedInUser(null);
         setRecognitionResult({ name: null, box: null });
         setErrorMessage('');
+        setIsPaused(false);
+    };
+
+    const handleRetryRecognition = () => {
+        setErrorMessage('');
+        setIsPaused(false);
     };
 
     return (
@@ -101,9 +96,19 @@ const LoginPage = () => {
                 <>
                     <h2>Đăng nhập bằng khuôn mặt</h2>
                     <p>Vui lòng nhìn thẳng vào camera để hệ thống nhận diện.</p>
-                    {errorMessage && <div className="feedback-box error" style={{ marginBottom: '15px' }}>{errorMessage}</div>}
 
-                    <div className="webcam-container" style={{ position: 'relative', width: '640px', margin: '0 auto' }}>
+                    {errorMessage && (
+                        <div className="feedback-box error center">
+                            <span>{errorMessage}</span>
+                            {isPaused && (
+                                <button onClick={handleRetryRecognition} className="retry-btn">
+                                    Thử lại
+                                </button>
+                            )}
+                        </div>
+                    )}
+
+                    <div className="webcam-container">
                         <Webcam
                             audio={false}
                             ref={webcamRef}
@@ -111,7 +116,7 @@ const LoginPage = () => {
                             width={640}
                             height={480}
                         />
-                        {recognitionResult.box && (
+                        {recognitionResult.box && !isPaused && (
                             <div
                                 className="bounding-box"
                                 style={{
@@ -123,17 +128,7 @@ const LoginPage = () => {
                                     border: `3px solid ${recognitionResult.name && recognitionResult.name !== 'Unknown' ? '#4caf50' : '#f44336'}`
                                 }}
                             >
-                                <div
-                                    className="name-label"
-                                    style={{
-                                        backgroundColor: recognitionResult.name && recognitionResult.name !== 'Unknown' ? '#4caf50' : '#f44336',
-                                        color: 'white',
-                                        padding: '5px',
-                                        position: 'absolute',
-                                        bottom: '-30px',
-                                        left: '0'
-                                    }}
-                                >
+                                <div className="name-label" style={{ backgroundColor: recognitionResult.name && recognitionResult.name !== 'Unknown' ? '#4caf50' : '#f44336' }}>
                                     {recognitionResult.name || 'Scanning...'}
                                 </div>
                             </div>
@@ -143,16 +138,15 @@ const LoginPage = () => {
             ) : (
                 <div className="welcome-message">
                     <h2>Đăng nhập thành công!</h2>
-                    {loggedInUser.image_base64 && (
+                    {loggedInUser.image_base_64 && (
                         <img
-                            src={`data:image/jpeg;base64,${loggedInUser.image_base64}`}
+                            src={`data:image/jpeg;base64,${loggedInUser.image_base_64}`}
                             alt={`Ảnh của ${loggedInUser.name}`}
                             className="welcome-avatar"
                         />
                     )}
                     <h3>Chào mừng, {loggedInUser.name}!</h3>
                     <p className="user-role">Vai trò: {loggedInUser.role}</p>
-
                     <button onClick={handleGoBackToLogin} className="back-to-login-btn">
                         Quét lại / Đăng nhập tài khoản khác
                     </button>

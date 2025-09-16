@@ -1,5 +1,3 @@
-
-
 // import React from 'react';
 // import { Routes, Route } from 'react-router-dom';
 // import Header from './components/Header';
@@ -48,6 +46,7 @@ import AdminRegisterPage from './pages/admin/AdminRegisterPage';
 import ForgotPasswordPage from './pages/admin/ForgotPasswordPage';
 import ResetPasswordPage from './pages/admin/ResetPasswordPage';
 import AdminLayout from './pages/admin/AdminLayout'; // Import layout mới
+import StatisticsPage from './pages/admin/StatisticsPage'; // Import trang thống kê
 
 const ClientLayout = ({ children }) => (
   <>
@@ -77,6 +76,7 @@ function App() {
             <Route index element={<Navigate to="users" />} />
             <Route path="users" element={<AdminDashboardPage view="users" />} />
             <Route path="admins" element={<AdminDashboardPage view="admins" />} />
+            <Route path="statistics" element={<StatisticsPage />} />
           </Route>
         </Routes>
       </main>

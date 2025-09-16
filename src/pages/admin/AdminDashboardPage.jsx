@@ -72,22 +72,18 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
 };
 
 
-// Component chính: Trang Dashboard
 const AdminDashboardPage = ({ view }) => {
-    const [allData, setAllData] = useState([]); // State để lưu trữ TOÀN BỘ dữ liệu từ API
+    const [allData, setAllData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [editingUser, setEditingUser] = useState(null);
-    const [currentPage, setCurrentPage] = useState(1); // State cho trang hiện tại
+    const [currentPage, setCurrentPage] = useState(1);
     const navigate = useNavigate();
 
-    const ITEMS_PER_PAGE = 15; // Cấu hình số lượng item mỗi trang
-
-    // Lấy ID của admin đang đăng nhập từ token
+    const ITEMS_PER_PAGE = 15;
     let currentAdminId = null;
     try {
         const token = localStorage.getItem('admin_access_token');
         if (token) {
-            // Sử dụng jwt-decode để an toàn hơn, nhưng cách này vẫn hoạt động nếu token không hết hạn
             currentAdminId = JSON.parse(atob(token.split('.')[1])).sub;
         }
     } catch (e) {
@@ -95,8 +91,16 @@ const AdminDashboardPage = ({ view }) => {
     }
 
     const formatDate = (dateString) => {
-        const options = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' };
-        return new Date(dateString).toLocaleDateString('vi-VN', options);
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        const hours = date.getHours();
+        const minutes = date.getMinutes().toString().padStart(2, '0');
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        const hour12 = hours % 12 || 12;
+        const day = date.getDate().toString().padStart(2, '0');
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const year = date.getFullYear();
+        return `${hour12}:${minutes} ${ampm} ${day}/${month}/${year}`;
     };
 
     const fetchData = useCallback(async () => {
@@ -109,8 +113,8 @@ const AdminDashboardPage = ({ view }) => {
                 return;
             }
             const response = await apiClient.get(endpoint);
-            setAllData(response.data); // Lưu toàn bộ dữ liệu vào allData
-            setCurrentPage(1); // Reset về trang 1 mỗi khi fetch dữ liệu mới
+            setAllData(response.data);
+            setCurrentPage(1);
         } catch (error) {
             console.error(`Failed to fetch ${view}:`, error);
             if (error.response && error.response.status === 401) {
@@ -126,8 +130,6 @@ const AdminDashboardPage = ({ view }) => {
         fetchData();
     }, [fetchData]);
 
-    // Sử dụng useMemo để tính toán dữ liệu cho trang hiện tại
-    // Chỉ tính toán lại khi allData hoặc currentPage thay đổi
     const { currentTableData, totalPages } = useMemo(() => {
         const firstPageIndex = (currentPage - 1) * ITEMS_PER_PAGE;
         const lastPageIndex = firstPageIndex + ITEMS_PER_PAGE;
@@ -170,10 +172,10 @@ const AdminDashboardPage = ({ view }) => {
             {editingUser && (
                 <EditUserForm user={editingUser} onSave={handleSaveEdit} onCancel={() => setEditingUser(null)} />
             )}
-            <h2>{pageTitle}</h2>
+            <h2 style={{ textAlign: 'center', marginBottom: '24px', fontWeight: 700 }}>{pageTitle}</h2>
             {allData.length > 0 ? (
                 <>
-                    <div className="table-wrapper">
+                    <div className="table-wrapper wide-table">
                         <table className="user-table">
                             <thead>
                                 <tr>
@@ -188,7 +190,6 @@ const AdminDashboardPage = ({ view }) => {
                             </thead>
                             <tbody>
                                 {currentTableData.map((item, index) => {
-                                    // Tính toán STT đúng cho mỗi trang
                                     const overallIndex = (currentPage - 1) * ITEMS_PER_PAGE + index + 1;
                                     return (
                                         <tr key={item.id}>
@@ -205,11 +206,9 @@ const AdminDashboardPage = ({ view }) => {
                                             <td>{item.role}</td>
                                             <td>{formatDate(item.created_at)}</td>
                                             <td>
-                                                {/* Chỉ hiển thị nút Sửa cho trang Quản lý User */}
                                                 {view === 'users' && (
                                                     <button onClick={() => setEditingUser(item)} className="edit-btn">Sửa</button>
                                                 )}
-                                                {/* Không cho phép admin tự xóa tài khoản của mình */}
                                                 {item.id !== currentAdminId && (
                                                     <button onClick={() => handleDelete(item.id, item.name)} className="delete-btn">Xóa</button>
                                                 )}

@@ -1,4 +1,3 @@
-// src/components/Step1_UserInfo.jsx
 
 import React, { useState } from 'react';
 
