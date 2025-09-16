@@ -2,14 +2,12 @@ import cv2
 import numpy as np
 import face_recognition
 
-# Import hàm phát hiện khuôn mặt mới của chúng ta từ face_detector
 from .face_detector import detect_faces_opencv
 
 def analyze_face(image: np.ndarray):
     height, width, _ = image.shape
     image_center_x, image_center_y = width // 2, height // 2
     
-    # Sử dụng hàm detect_faces_opencv thay vì face_locations của dlib
     face_locations = detect_faces_opencv(image)
     
     if not face_locations:

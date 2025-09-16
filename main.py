@@ -1,4 +1,3 @@
-# backend/main.py (PHIÊN BẢN SỬA LỖI AttributeError 500)
 
 import base64
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Depends, Body
@@ -132,9 +131,6 @@ async def login_recognize_endpoint(file: UploadFile = File(...)):
         if user.face_encodings:
             for enc_bytes in user.face_encodings:
                 known_encodings.append(pickle.loads(enc_bytes))
-                # === SỬA LỖI AttributeError ===
-                # Sử dụng getattr để truy cập 'face_image_base64' một cách an toàn.
-                # Nếu thuộc tính không tồn tại trên đối tượng user, nó sẽ trả về None.
                 known_user_data.append({
                     "name": user.name,
                     "role": user.role,
@@ -159,7 +155,6 @@ async def login_recognize_endpoint(file: UploadFile = File(...)):
     return {"status": "UNKNOWN", "message": "Không nhận dạng được khuôn mặt.", "data": {"name": "Unknown", "box": box_for_json, "role": None, "image_base_64": None}}
 
 # ---  API ADMIN ---
-# (Phần còn lại của file giữ nguyên)
 class AdminRegisterForm(BaseModel):
     name: str
     user_code: str
@@ -195,7 +190,7 @@ async def admin_login_form_endpoint(form_data: OAuth2PasswordRequestForm = Depen
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    access_token = create_access_token(data={"sub": str(user.id)})
+    access_token = create_access_token(data={"sub": str(user.id), "name":user.name})
     return {"access_token": access_token, "token_type": "bearer"}
 
 @app.post("/system-admin/forgot-password", tags=["Admin Auth"])
