@@ -1,6 +1,7 @@
+# --- START OF FILE main.py ---
 
 import base64
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Depends, Body
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Depends, Body, Header
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import EmailStr, BaseModel
@@ -14,8 +15,10 @@ from datetime import timedelta
 from jose import JWTError, jwt
 import os
 from dotenv import load_dotenv
-from pathlib import Path
-
+#from pathlib import Path
+from .odm_models import EventUser
+from fastapi import Path as ApiPath  # Đổi tên để dùng cho endpoint
+from pathlib import Path  # Dùng cho xử lý file hệ thống
 from .database import init_db
 from .odm_models import User
 from .schemas import UserOut, AdminUserOut, UserUpdate
@@ -35,6 +38,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/system-admin/login-form")
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM")
 
+# HÀM NÀY: Dùng cho các endpoint BẮT BUỘC xác thực
 async def get_current_admin_user(token: str = Depends(oauth2_scheme)):
     credentials_exception = HTTPException(status_code=401, detail="Could not validate credentials", headers={"WWW-Authenticate": "Bearer"})
     try:
@@ -47,6 +51,28 @@ async def get_current_admin_user(token: str = Depends(oauth2_scheme)):
     if user is None or not user.is_admin:
         raise credentials_exception
     return user
+
+# HÀM MỚI: Dùng cho các endpoint có thể có hoặc KHÔNG có token (như trang đăng ký)
+async def get_optional_current_admin_user(authorization: Optional[str] = Header(None)):
+    if authorization is None:
+        return None
+
+    try:
+        scheme, token = authorization.split()
+        if scheme.lower() != "bearer":
+            return None
+        
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id: str = payload.get("sub")
+        if user_id is None:
+            return None
+        
+        user = await User.get(ObjectId(user_id))
+        if user and user.is_admin:
+            return user
+        return None
+    except (JWTError, ValueError):
+        return None
 
 # --- KẾT THÚC XÁC THỰC ---
 
@@ -161,9 +187,30 @@ class AdminRegisterForm(BaseModel):
     email: EmailStr
     role: str
     password: str
+    is_super_admin: bool = False
 
+# ENDPOINT MỚI ĐỂ KIỂM TRA SUPER ADMIN CÓ TỒN TẠI KHÔNG
+@app.get("/system-admin/setup-status", tags=["Admin Auth"])
+async def check_super_admin_exists():
+    """Kiểm tra xem đã có super admin nào trong hệ thống chưa. Không cần xác thực."""
+    super_admin = await User.find_one(User.is_super_admin == True)
+    return {"super_admin_exists": super_admin is not None}
+
+# SỬA LẠI ENDPOINT ĐĂNG KÝ ADMIN
 @app.post("/system-admin/register", tags=["Admin Auth"])
-async def admin_register_endpoint(form_data: AdminRegisterForm):
+async def admin_register_endpoint(
+    form_data: AdminRegisterForm,
+    # SỬA DÒNG NÀY: Dùng dependency mới để không bị lỗi 401
+    current_admin: Optional[User] = Depends(get_optional_current_admin_user)
+):
+    # Kiểm tra đã có super admin chưa
+    super_admin_exists = await User.find_one(User.is_super_admin == True)
+    if super_admin_exists:
+        # Nếu đã có super admin, yêu cầu xác thực và phải là super admin
+        if not current_admin or not current_admin.is_super_admin:
+            raise HTTPException(status_code=403, detail="Chỉ super admin mới có quyền tạo admin mới !")
+    # Nếu chưa có super admin, cho phép tạo mà không cần xác thực
+
     if await User.find_one(User.email == form_data.email):
         raise HTTPException(status_code=400, detail="Email admin đã tồn tại")
     if await User.find_one(User.user_code == form_data.user_code):
@@ -177,6 +224,7 @@ async def admin_register_endpoint(form_data: AdminRegisterForm):
         role=form_data.role,
         password=hashed_password,
         is_admin=True,
+        is_super_admin=(form_data.role == "super_admin"),
     )
     await new_admin.insert()
     return {"status": "success", "message": f"Tài khoản admin {form_data.name} đã được tạo."}
@@ -190,9 +238,14 @@ async def admin_login_form_endpoint(form_data: OAuth2PasswordRequestForm = Depen
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    access_token = create_access_token(data={"sub": str(user.id), "name":user.name})
+    # Thêm role và is_super_admin vào token
+    access_token = create_access_token(data={
+        "sub": str(user.id),
+        "name": user.name,
+        "role": user.role,
+        "is_super_admin": user.is_super_admin
+    })
     return {"access_token": access_token, "token_type": "bearer"}
-
 @app.post("/system-admin/forgot-password", tags=["Admin Auth"])
 async def forgot_password(email_body: dict = Body(...)):
     email = email_body.get("email")
@@ -247,6 +300,8 @@ async def get_all_normal_users(admin: User = Depends(get_current_admin_user)):
 
 @app.get("/system-admin/admins", response_model=List[AdminUserOut], tags=["Admin Management"])
 async def get_all_admin_users(admin: User = Depends(get_current_admin_user)):
+    if not admin.is_super_admin:
+        raise HTTPException(status_code=403, detail="Chỉ super admin mới có quyền xem danh sách admin !")
     admins = await User.find(User.is_admin == True).to_list()
     results = []
     for ad in admins:
@@ -254,6 +309,7 @@ async def get_all_admin_users(admin: User = Depends(get_current_admin_user)):
         user_data["id"] = str(ad.id)
         results.append(AdminUserOut(**user_data))
     return results
+
 @app.put("/system-admin/users/{user_id}", response_model=AdminUserOut, tags=["Admin Management"])
 async def update_user_by_admin(user_id: str, user_update: UserUpdate, admin: User = Depends(get_current_admin_user)):
     user_to_update = await User.get(ObjectId(user_id))
@@ -289,3 +345,174 @@ async def delete_user_by_admin(user_id: str, admin: User = Depends(get_current_a
 
     await user_to_delete.delete()
     return {"status": "success", "message": f"User {user_to_delete.name} deleted"}
+
+@app.delete("/system-admin/admins/{admin_id}", tags=["Admin Management"])
+async def delete_admin_by_super_admin(admin_id:str, current_admin:User =Depends(get_current_admin_user)):
+    if not current_admin.is_super_admin:
+        raise HTTPException(status_code=403, detail="Chỉ super admin mới có quyền xóa admin !")
+    admin_to_delete=await User.get(ObjectId(admin_id))
+    if not admin_to_delete:
+        raise HTTPException(status_code=404, detail="Admin not found")
+    if admin_to_delete.id == current_admin.id:
+        raise HTTPException(status_code=403,detail="Super admin not delete their own account")
+    await admin_to_delete.delete()
+    return {"status":"success","message":f"Admin {admin_to_delete.name} deleted"}
+
+@app.put("/system-admin/admins/{admin_id}", response_model=AdminUserOut, tags=["Admin Management"])
+async def update_admin_by_super_admin(admin_id: str, user_update: UserUpdate, current_admin: User = Depends(get_current_admin_user)):
+    if not current_admin.is_super_admin:
+        raise HTTPException(status_code=403, detail="Chỉ super admin mới được phép sửa thông tin admin.")
+    admin_to_update = await User.get(ObjectId(admin_id))
+    if not admin_to_update or not admin_to_update.is_admin:
+        raise HTTPException(status_code=404, detail="Admin not found")
+    update_data = user_update.model_dump(exclude_unset=True)
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No update data provided")
+    if "user_code" in update_data and await User.find_one(User.user_code == update_data["user_code"], User.id != admin_to_update.id):
+        raise HTTPException(status_code=400, detail="User code already exists")
+    if "email" in update_data and await User.find_one(User.email == update_data["email"], User.id != admin_to_update.id):
+        raise HTTPException(status_code=400, detail="Email already exists")
+    await admin_to_update.update({"$set": update_data})
+    updated_admin = await User.get(ObjectId(admin_id))
+    updated_admin_data = updated_admin.model_dump()
+    updated_admin_data["id"] = str(updated_admin.id)
+    return AdminUserOut(**updated_admin_data)
+
+# --- event
+# @app.post("/event-users/add", tags=["Event"])
+# async def add_event_user(
+#     name: str = Form(...),
+#     email: str = Form(None),
+#     role: str = Form(None),
+#     company: str = Form(None),
+#     position: str = Form(None),
+#     file: UploadFile = File(...)
+# ):
+#     image_bytes = await file.read()
+#     image_base64 = base64.b64encode(image_bytes).decode('utf-8')
+#     new_event_user = EventUser(
+#         name=name,
+#         email=email,
+#         role=role,
+#         company=company,
+#         position=position,
+#         face_image_base64=image_base64
+#     )
+#     await new_event_user.insert()
+#     return {"status": "success", "message": f"Thêm thành công {name} vào sự kiện!"}
+@app.post("/event-users/add", tags=["Event"])
+async def add_event_user(
+    name: str = Form(...),
+    email: str = Form(None),
+    role: str = Form(None),
+    company: str = Form(None),
+    position: str = Form(None),
+    file: UploadFile = File(...)
+):
+    image_bytes = await file.read()
+    image_base64 = base64.b64encode(image_bytes).decode('utf-8')
+    image = bytes_to_cv2_img(image_bytes)
+    face_locations = detect_faces_opencv(image)
+    if not face_locations or len(face_locations) != 1:
+        raise HTTPException(status_code=400, detail="Ảnh phải có đúng 1 khuôn mặt rõ ràng!")
+    rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    encodings = face_recognition.face_encodings(rgb_image, face_locations)
+    if not encodings:
+        raise HTTPException(status_code=400, detail="Không thể lấy encoding khuôn mặt!")
+    face_encoding = base64.b64encode(pickle.dumps(encodings[0])).decode('utf-8')
+    new_event_user = EventUser(
+        name=name,
+        email=email,
+        role=role,
+        company=company,
+        position=position,
+        face_image_base64=image_base64,
+        face_encoding=face_encoding
+    )
+    await new_event_user.insert()
+    return {"status": "success", "message": f"Thêm thành công {name} vào sự kiện!"}
+@app.get("/event-users", tags=["Event"])
+async def get_event_users():
+    users = await EventUser.find_all().to_list()
+    for user in users:
+        if hasattr(user, 'id'):
+           user._id= str (user.id)
+    return users
+
+# SỬA NGƯỜI THAM DỰ SỰ KIỆN
+@app.put("/event-users/{user_id}", tags=["Event"])
+async def update_event_user(
+    user_id: str = ApiPath(...),
+    name: str = Form(...),
+    email: str = Form(None),
+    role: str = Form(None),
+    company: str = Form(None),
+    position: str = Form(None),
+    file: UploadFile = File(None)
+):
+    user = await EventUser.get(ObjectId(user_id))
+    if not user:
+        raise HTTPException(status_code=404, detail="Event user not found")
+    update_data = {
+        "name": name,
+        "email": email,
+        "role": role,
+        "company": company,
+        "position": position
+    }
+    if file:
+        image_bytes = await file.read()
+        image_base64 = base64.b64encode(image_bytes).decode('utf-8')
+        update_data["face_image_base64"] = image_base64
+    await user.update({"$set": update_data})
+    updated_user = await EventUser.get(ObjectId(user_id))
+    return updated_user
+
+# XÓA NGƯỜI THAM DỰ SỰ KIỆN
+@app.delete("/event-users/{user_id}", tags=["Event"])
+async def delete_event_user(user_id: str = ApiPath(...)):
+    user = await EventUser.get(ObjectId(user_id))
+    if not user:
+        raise HTTPException(status_code=404, detail="Event user not found")
+    await user.delete()
+    return {"status": "success", "message": f"Đã xóa người tham dự {user.name}"}
+# post
+
+@app.post("/event-recognize", tags=["Event"])
+async def event_recognize(file: UploadFile = File(...)):
+    image_bytes = await file.read()
+    image = bytes_to_cv2_img(image_bytes)
+    face_locations = detect_faces_opencv(image)
+    if not face_locations:
+        return {"status": "NO_FACE", "message": "Không tìm thấy khuôn mặt nào.", "data": None}
+    if len(face_locations) > 1:
+        return {"status": "MULTIPLE_FACES", "message": "Phát hiện nhiều hơn một khuôn mặt.", "data": None}
+    rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    unknown_encoding = face_recognition.face_encodings(rgb_image, face_locations)[0]
+    box = face_locations[0]
+    box_for_json = tuple(map(int, box))
+    all_users = await EventUser.find(EventUser.face_encoding != None).to_list()
+    known_encodings = []
+    known_user_data = []
+    for user in all_users:
+        if user.face_encoding:
+            # Sử dụng encoding đã lưu
+            known_encodings.append(pickle.loads(base64.b64decode(user.face_encoding)))
+            known_user_data.append({
+                "name": user.name,
+                "role": user.role,
+                "image_base_64": user.face_image_base64
+            })
+    if not known_encodings:
+        return {"status": "UNKNOWN", "message": "Không có dữ liệu khuôn mặt.", "data": {"name": "Unknown", "box": box_for_json, "role": None, "image_base_64": None}}
+    matches = face_recognition.compare_faces(known_encodings, unknown_encoding, tolerance=0.6)
+    face_distances = face_recognition.face_distance(known_encodings, unknown_encoding)
+    if True in matches:
+        best_match_index = np.argmin(face_distances)
+        if matches[best_match_index]:
+            matched_user_data = known_user_data[best_match_index]
+            return {
+                "status": "SUCCESS", "message": "Nhận diện thành công.",
+                "data": {**matched_user_data, "box": box_for_json}
+            }
+    return {"status": "UNKNOWN", "message": "Không nhận diện được khuôn mặt.", "data": {"name": "Unknown", "box": box_for_json, "role": None, "image_base_64": None}}

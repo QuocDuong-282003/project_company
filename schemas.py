@@ -14,6 +14,7 @@ class AdminUserOut(BaseModel):
     role: str
     face_image_base64: Optional[str] = None
     is_admin: bool
+    is_super_admin: bool
     created_at: datetime 
 
 class UserUpdate(BaseModel):
