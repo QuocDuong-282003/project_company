@@ -93,3 +93,98 @@
     color: #2563eb;
     text-decoration: underline;
 }
+
+.admin-register-container {
+    max-width: 400px;
+    margin: 40px auto;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
+    padding: 32px 28px 24px 28px;
+    font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+.admin-register-title {
+    text-align: center;
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-bottom: 24px;
+    color: #2d3a4b;
+    letter-spacing: 1px;
+}
+
+.admin-register-form .form-group {
+    margin-bottom: 18px;
+}
+
+.admin-register-form input,
+.admin-register-form select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #dbe2ea;
+    border-radius: 6px;
+    font-size: 1rem;
+    background: #f7fafd;
+    transition: border-color 0.2s;
+}
+
+.admin-register-form input:focus,
+.admin-register-form select:focus {
+    border-color: #4b8cff;
+    outline: none;
+    background: #eef6ff;
+}
+
+.admin-register-btn {
+    width: 100%;
+    padding: 12px 0;
+    background: linear-gradient(90deg, #4b8cff 0%, #2d6cdf 100%);
+    color: #fff;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-top: 8px;
+    box-shadow: 0 2px 8px rgba(75, 140, 255, 0.08);
+    transition: background 0.2s;
+}
+
+.admin-register-btn:hover {
+    background: linear-gradient(90deg, #2d6cdf 0%, #4b8cff 100%);
+}
+
+.admin-register-message {
+    margin-top: 16px;
+    text-align: center;
+    font-size: 1rem;
+    border-radius: 4px;
+    padding: 8px 0;
+}
+
+.admin-register-message.success {
+    color: #1a7f37;
+    background: #e6f4ea;
+    border: 1px solid #b7e4c7;
+}
+
+.admin-register-message.error {
+    color: #d32f2f;
+    background: #fdeaea;
+    border: 1px solid #f5c6cb;
+}
+
+.admin-register-link {
+    display: block;
+    text-align: center;
+    margin-top: 18px;
+    color: #4b8cff;
+    font-weight: 500;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.admin-register-link:hover {
+    color: #2d6cdf;
+    text-decoration: underline;
+}

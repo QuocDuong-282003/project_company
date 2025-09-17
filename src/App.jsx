@@ -47,6 +47,8 @@ import ForgotPasswordPage from './pages/admin/ForgotPasswordPage';
 import ResetPasswordPage from './pages/admin/ResetPasswordPage';
 import AdminLayout from './pages/admin/AdminLayout'; // Import layout mới
 import StatisticsPage from './pages/admin/StatisticsPage'; // Import trang thống kê
+import EventPage from './pages/EventPage';
+import AddUserEventPage from './pages/admin/AddUserEventPage';
 
 const ClientLayout = ({ children }) => (
   <>
@@ -64,6 +66,7 @@ function App() {
           <Route path="/" element={<ClientLayout><HomePage /></ClientLayout>} />
           <Route path="/register" element={<ClientLayout><RegistrationPage /></ClientLayout>} />
           <Route path="/login" element={<ClientLayout><LoginPage /></ClientLayout>} />
+          <Route path="/event" element={<ClientLayout><EventPage /></ClientLayout>} />
 
           {/* Admin Auth Routes */}
           <Route path="/system-admin" element={<Navigate to="/system-admin/login" />} />
@@ -77,6 +80,7 @@ function App() {
             <Route path="users" element={<AdminDashboardPage view="users" />} />
             <Route path="admins" element={<AdminDashboardPage view="admins" />} />
             <Route path="statistics" element={<StatisticsPage />} />
+            <Route path="add-user-event" element={<AddUserEventPage />} />
           </Route>
         </Routes>
       </main>

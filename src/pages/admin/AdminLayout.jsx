@@ -1,20 +1,20 @@
-
 import React, { useState, useEffect } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
+
 const AdminLayout = () => {
     const [adminName, setAdminName] = useState('');
+    const [role, setRole] = useState('');
     const navigate = useNavigate();
+
     useEffect(() => {
         const token = localStorage.getItem('admin_access_token');
         if (token) {
             try {
                 const decodedToken = jwtDecode(token);
-                console.log('Decoded token:', decodedToken);
-                console.log('Name from token:', decodedToken.name);
                 setAdminName(decodedToken.name || 'Admin');
+                setRole(decodedToken.role || '');
             } catch (error) {
-                console.error("Failed to decode token:", error);
                 handleLogout();
             }
         } else {
@@ -27,6 +27,7 @@ const AdminLayout = () => {
         navigate('/system-admin/login');
     };
 
+    // Sửa lại NavLink để chuyển đến /system-admin/register khi nhấn "Tạo tài khoản Admin"
     return (
         <div className="admin-layout">
             <header className="admin-header">
@@ -35,6 +36,7 @@ const AdminLayout = () => {
                     {adminName && (
                         <span className="admin-welcome-message">
                             Chào mừng, <strong>{adminName}</strong>
+                            {role === "super_admin" && <span style={{ color: 'red', fontWeight: 600 }}> (Super Admin)</span>}
                         </span>
                     )}
                     <button onClick={handleLogout} className="logout-btn">Đăng xuất</button>
@@ -48,9 +50,19 @@ const AdminLayout = () => {
                     <NavLink to="/system-admin/dashboard/users" className="sidebar-link">
                         Quản lý User
                     </NavLink>
-                    <NavLink to="/system-admin/dashboard/admins" className="sidebar-link">
-                        Quản lý Admin
+                    {role === "super_admin" && (
+                        <NavLink to="/system-admin/dashboard/admins" className="sidebar-link">
+                            Quản lý Admin
+                        </NavLink>
+                    )}
+                    <NavLink to="/system-admin/dashboard/add-user-event" className="sidebar-link">
+                        Add User Event
                     </NavLink>
+                    {role === "super_admin" && (
+                        <NavLink to="/system-admin/register" className="sidebar-link">
+                            Tạo tài khoản Admin
+                        </NavLink>
+                    )}
                 </nav>
                 <main className="admin-content">
                     <Outlet />
@@ -61,3 +73,4 @@ const AdminLayout = () => {
 };
 
 export default AdminLayout;
+// ...existing code...
