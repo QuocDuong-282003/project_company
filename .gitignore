@@ -1,5 +1,5 @@
 # Bỏ qua thư mục venv
-
+venv/
 # Bỏ qua pycache
 __pycache__/
 
