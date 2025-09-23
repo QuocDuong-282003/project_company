@@ -16,7 +16,7 @@ from jose import JWTError, jwt
 import os
 from dotenv import load_dotenv
 #from pathlib import Path
-from .odm_models import EventUser
+from .odm_models import EventUser,CheckInHistory
 from fastapi import Path as ApiPath  # Đổi tên để dùng cho endpoint
 from pathlib import Path  # Dùng cho xử lý file hệ thống
 from .database import init_db
@@ -478,6 +478,51 @@ async def delete_event_user(user_id: str = ApiPath(...)):
     return {"status": "success", "message": f"Đã xóa người tham dự {user.name}"}
 # post
 
+# @app.post("/event-recognize", tags=["Event"])
+# async def event_recognize(file: UploadFile = File(...)):
+#     image_bytes = await file.read()
+#     image = bytes_to_cv2_img(image_bytes)
+#     face_locations = detect_faces_opencv(image)
+#     if not face_locations:
+#         return {"status": "NO_FACE", "message": "Không tìm thấy khuôn mặt nào.", "data": None}
+#     if len(face_locations) > 1:
+#         return {"status": "MULTIPLE_FACES", "message": "Phát hiện nhiều hơn một khuôn mặt.", "data": None}
+#     rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+#     unknown_encoding = face_recognition.face_encodings(rgb_image, face_locations)[0]
+#     box = face_locations[0]
+#     box_for_json = tuple(map(int, box))
+#     all_users = await EventUser.find(EventUser.face_encoding != None).to_list()
+#     known_encodings = []
+#     known_user_data = []
+#     for user in all_users:
+#         if user.face_encoding:
+#             # Sử dụng encoding đã lưu
+#             known_encodings.append(pickle.loads(base64.b64decode(user.face_encoding)))
+#             known_user_data.append({
+#                 "name": user.name,
+#                 "role": user.role,
+#                 "image_base_64": user.face_image_base64
+#             })
+#     if not known_encodings:
+#         return {"status": "UNKNOWN", "message": "Không có dữ liệu khuôn mặt.", "data": {"name": "Unknown", "box": box_for_json, "role": None, "image_base_64": None}}
+#     matches = face_recognition.compare_faces(known_encodings, unknown_encoding, tolerance=0.6)
+#     face_distances = face_recognition.face_distance(known_encodings, unknown_encoding)
+#     if True in matches:
+#         best_match_index = np.argmin(face_distances)
+#         if matches[best_match_index]:
+#             matched_user_data = known_user_data[best_match_index]
+#             return {
+#                 "status": "SUCCESS", "message": "Nhận diện thành công.",
+#                 "data": {**matched_user_data, "box": box_for_json}
+#             }
+#     return {"status": "UNKNOWN", "message": "Không nhận diện được khuôn mặt.", "data": 
+#             {"name": "Unknown", "box": box_for_json, "role": None, "image_base_64": None}}
+
+
+# Thêm import này vào đầu file main.py
+from .odm_models import EventUser, CheckInHistory
+
+# Cập nhật endpoint event-recognize để lưu lịch sử check-in
 @app.post("/event-recognize", tags=["Event"])
 async def event_recognize(file: UploadFile = File(...)):
     image_bytes = await file.read()
@@ -496,12 +541,14 @@ async def event_recognize(file: UploadFile = File(...)):
     known_user_data = []
     for user in all_users:
         if user.face_encoding:
-            # Sử dụng encoding đã lưu
             known_encodings.append(pickle.loads(base64.b64decode(user.face_encoding)))
             known_user_data.append({
                 "name": user.name,
                 "role": user.role,
-                "image_base_64": user.face_image_base64
+                "company": user.company,
+                "position": user.position,
+                "image_base_64": user.face_image_base64,
+                "user_id": str(user.id)
             })
     if not known_encodings:
         return {"status": "UNKNOWN", "message": "Không có dữ liệu khuôn mặt.", "data": {"name": "Unknown", "box": box_for_json, "role": None, "image_base_64": None}}
@@ -511,8 +558,44 @@ async def event_recognize(file: UploadFile = File(...)):
         best_match_index = np.argmin(face_distances)
         if matches[best_match_index]:
             matched_user_data = known_user_data[best_match_index]
+            
+            # Lưu lịch sử check-in
+            check_in_record = CheckInHistory(
+                user_name=matched_user_data["name"],
+                user_role=matched_user_data["role"],
+                user_company=matched_user_data["company"],
+                user_position=matched_user_data["position"],
+                user_image_base64=matched_user_data["image_base_64"]
+            )
+            await check_in_record.insert()
+            
             return {
                 "status": "SUCCESS", "message": "Nhận diện thành công.",
                 "data": {**matched_user_data, "box": box_for_json}
             }
     return {"status": "UNKNOWN", "message": "Không nhận diện được khuôn mặt.", "data": {"name": "Unknown", "box": box_for_json, "role": None, "image_base_64": None}}
+
+# Thêm các endpoint quản lý thống kê
+@app.get("/system-admin/check-in-statistics", tags=["Admin Management"])
+async def get_check_in_statistics(admin: User = Depends(get_current_admin_user)):
+    check_ins = await CheckInHistory.find_all().sort(-CheckInHistory.check_in_time).to_list()
+    results = []
+    for i, check_in in enumerate(check_ins, 1):
+        check_in_data = check_in.model_dump()
+        check_in_data["id"] = str(check_in.id)
+        check_in_data["stt"] = i
+        results.append(check_in_data)
+    return results
+
+@app.delete("/system-admin/check-in-statistics/{check_in_id}", tags=["Admin Management"])
+async def delete_check_in_record(check_in_id: str, admin: User = Depends(get_current_admin_user)):
+    check_in = await CheckInHistory.get(ObjectId(check_in_id))
+    if not check_in:
+        raise HTTPException(status_code=404, detail="Check-in record not found")
+    await check_in.delete()
+    return {"status": "success", "message": "Đã xóa bản ghi điểm danh"}
+
+@app.delete("/system-admin/check-in-statistics", tags=["Admin Management"])
+async def clear_all_check_in_records(admin: User = Depends(get_current_admin_user)):
+    await CheckInHistory.delete_all()
+    return {"status": "success", "message": "Đã xóa tất cả bản ghi điểm danh"}

@@ -1,6 +1,6 @@
 import motor.motor_asyncio
 from beanie import init_beanie
-from .odm_models import User ,EventUser
+from .odm_models import User ,EventUser,CheckInHistory
 
 async def init_db():
     # Kết nối tới MongoDB
@@ -10,4 +10,4 @@ async def init_db():
     database = client.face_recognition_db
 
     # Khởi tạo Beanie với document model
-    await init_beanie(database=database, document_models=[User, EventUser])
+    await init_beanie(database=database, document_models=[User, EventUser,CheckInHistory])

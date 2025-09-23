@@ -2,7 +2,7 @@ from beanie import Document, Indexed
 from pydantic import Field
 from typing import List, Optional
 from datetime import datetime
-
+from datetime import datetime
 class User(Document):
     
     name: str
@@ -32,3 +32,13 @@ class EventUser(Document):
 
     class Settings:
         name = "event_users"
+class CheckInHistory(Document):
+    user_name: str
+    user_role: Optional[str] = None
+    user_company: Optional[str] = None
+    user_position: Optional[str] = None
+    user_image_base64: Optional[str] = None
+    check_in_time: datetime = datetime.utcnow()
+    
+    class Settings:
+        name = "check_in_history"
