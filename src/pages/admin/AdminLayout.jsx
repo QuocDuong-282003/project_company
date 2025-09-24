@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
-
+import Footer from '../../Footer/Footer';
 const AdminLayout = () => {
     const [adminName, setAdminName] = useState('');
     const [role, setRole] = useState('');
@@ -27,7 +27,6 @@ const AdminLayout = () => {
         navigate('/system-admin/login');
     };
 
-    // Sửa lại NavLink để chuyển đến /system-admin/register khi nhấn "Tạo tài khoản Admin"
     return (
         <div className="admin-layout">
             <header className="admin-header">
@@ -67,10 +66,11 @@ const AdminLayout = () => {
                 <main className="admin-content">
                     <Outlet />
                 </main>
+
             </div>
+            <Footer />
         </div>
     );
 };
 
 export default AdminLayout;
-// ...existing code...

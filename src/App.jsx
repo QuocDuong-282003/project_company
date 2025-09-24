@@ -49,12 +49,16 @@ import AdminLayout from './pages/admin/AdminLayout'; // Import layout mới
 import StatisticsPage from './pages/admin/StatisticsPage'; // Import trang thống kê
 import EventPage from './pages/EventPage';
 import AddUserEventPage from './pages/admin/AddUserEventPage';
-
+import Footer from './Footer/Footer';
 const ClientLayout = ({ children }) => (
-  <>
+  <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
     <Header />
-    {children}
-  </>
+
+    <main style={{ flex: 1 }}>
+      {children}
+    </main>
+    <Footer />
+  </div>
 );
 
 function App() {
