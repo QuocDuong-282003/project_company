@@ -94,7 +94,7 @@ const Step2FaceCapture = ({ onCapture, onBack }) => {
                 />
                 <div className={`feedback-box ${feedback.status === 'OK' ? 'ok' : 'error'}`}>
                     {feedback.message}
-                    {isReady && <div className="countdown-timer">Giữ nguyên... Chụp trong {countdown}</div>}
+                    {isReady && <div className="countdown-timer">Vui lòng giữ nguyên... Chụp trong {countdown}</div>}
                 </div>
             </div>
             <button onClick={onBack} style={{ marginTop: '15px' }}>Quay lại</button>

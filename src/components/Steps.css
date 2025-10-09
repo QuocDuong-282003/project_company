@@ -2,14 +2,12 @@
     /* Các thuộc tính cũ */
     width: 100%;
     max-width: 900px;
-    /* Có thể tăng max-width nếu muốn */
     padding: 30px 20px;
     background: white;
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     text-align: center;
 
-    /* === THÊM DÒNG NÀY ĐỂ CĂN GIỮA === */
     margin: 40px auto;
 }
 
@@ -18,7 +16,6 @@
     margin-bottom: 30px;
 }
 
-/* ... (phần còn lại của file Steps.css giữ nguyên) ... */
 /* Form chung */
 .step-container form {
     width: 100%;
@@ -37,6 +34,14 @@
     border-radius: 6px;
     font-size: 16px;
     box-sizing: border-box;
+    outline: none;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.step-container input[type="text"],
+.step-container input[type="email"]:focus {
+    border-color: #5dade2;
+    box-shadow: 0 0 5px rgba(93, 173, 226, 0.5);
 }
 
 .step-container button[type="submit"] {
@@ -113,13 +118,13 @@
     font-size: 1.1em;
 }
 
-.button-group {
+.button-group-image {
     display: flex;
     gap: 15px;
     justify-content: center;
 }
 
-.button-group button {
+.button-group-image button {
     padding: 10px 20px;
     border: none;
     border-radius: 6px;
@@ -127,20 +132,20 @@
     cursor: pointer;
 }
 
-.button-group .primary {
+.button-group-image .primary {
     background-color: #28a745;
     color: white;
 }
 
-.button-group .primary:hover {
+.button-group-image .primary:hover {
     background-color: #218838;
 }
 
-.button-group button:not(.primary) {
+.button-group-image button:not(.primary) {
     background-color: #6c757d;
     color: white;
 }
 
-.button-group button:not(.primary):hover {
+.button-group-image button:not(.primary):hover {
     background-color: #5a6268;
 }

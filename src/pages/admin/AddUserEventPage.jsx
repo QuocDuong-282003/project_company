@@ -39,7 +39,7 @@ const AddUserEventPage = () => {
                 email: user.email || '',
                 image: null
             });
-            setEditId(user.id || user._id);
+            setEditId(user.id);
         } else {
             setFormData({ name: '', position: '', company: '', role: '', email: '', image: null });
             setEditId(null);
@@ -90,16 +90,28 @@ const AddUserEventPage = () => {
         }
     };
 
-    const handleDelete = async id => {
-        //  API xóa 
+    // const handleDelete = async id => {
+    //     //  API xóa 
+    //     try {
+    //         await apiClient.delete(`/event-users/${id}`);
+    //         fetchUsers();
+    //     } catch {
+    //         setError('Không thể xóa!');
+    //     }
+    // };
+    // Thay thế hàm handleDelete cũ bằng hàm này
+
+    const handleDelete = async (idToDelete) => {
+        if (!window.confirm("Bạn có chắc muốn xóa người dùng này không?")) {
+            return;
+        }
         try {
-            await apiClient.delete(`/event-users/${id}`);
-            fetchUsers();
-        } catch {
-            setError('Không thể xóa!');
+            await apiClient.delete(`/event-users/${idToDelete}`);
+            setUsers(currentUsers => currentUsers.filter(user => (user.id || user._id) !== idToDelete));
+        } catch (err) {
+            setError(err.response?.data?.detail || 'Không thể xóa người dùng này. Vui lòng thử lại.');
         }
     };
-
     return (
         <div className="add-user-event-container">
             <h2>Danh sách người tham dự sự kiện</h2>
@@ -143,7 +155,7 @@ const AddUserEventPage = () => {
                                     <td>{new Date(user.created_at).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' })}</td>
                                     <td>
                                         <button className="action-btn edit" onClick={() => handleOpenModal(user)}>Sửa</button>
-                                        <button className="action-btn delete" onClick={() => handleDelete(user.id || user._id)}>Xóa</button>                                    </td>
+                                        <button className="action-btn delete" onClick={() => handleDelete(user.id)}>Xóa</button>                                    </td>
                                 </tr>
                             ))
                         )}

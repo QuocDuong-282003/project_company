@@ -1,29 +1,35 @@
 import axios from 'axios';
 
 const apiClient = axios.create({
-    baseURL: "http://127.0.0.1:8000",
+    baseURL: "https://face.webie.com.vn/api", // hoặc https://face.webie.com.vn:8000 nếu muốn bypass proxy
+    headers: {
+        'Content-Type': 'application/json',
+    },
 });
 
 apiClient.interceptors.request.use(
-    config => {
-        // Sửa lại điều kiện kiểm tra để bao gồm endpoint statistics
+    (config) => {
         if (config.url.includes('/system-admin/')) {
             const token = localStorage.getItem('admin_access_token');
             if (token) {
                 config.headers['Authorization'] = `Bearer ${token}`;
             }
         }
+
+        // Gửi FormData (upload ảnh) → multipart
         if (config.data instanceof FormData) {
-            delete config.headers['Content-Type'];
+            config.headers['Content-Type'] = 'multipart/form-data';
         }
+        // Gửi URLSearchParams (login) → x-www-form-urlencoded
+        else if (config.data instanceof URLSearchParams) {
+            config.headers['Content-Type'] = 'application/x-www-form-urlencoded';
+        }
+
         return config;
     },
-    error => {
-        return Promise.reject(error);
-    }
+    (error) => Promise.reject(error)
 );
 
-// Thêm response interceptor để xử lý lỗi 401
 apiClient.interceptors.response.use(
     response => response,
     error => {

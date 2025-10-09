@@ -13,7 +13,7 @@ const Step3Confirm = ({ formData, onSubmit, onBack }) => {
                     <p><strong>Mã số:</strong> {user_code}</p>
                 </div>
             </div>
-            <div className="button-group">
+            <div className="button-group-image">
                 <button onClick={onBack}>Chụp lại</button>
                 <button onClick={onSubmit} className="primary">Hoàn thành</button>
             </div>

@@ -29,7 +29,7 @@ const Step1UserInfo = ({ onNext, initialData }) => {
                 />
                 <input
                     type="text"
-                    placeholder="Mã số (ví dụ: NV001)"
+                    placeholder="Mã số NV001"
                     value={userCode}
                     onChange={(e) => setUserCode(e.target.value)}
                     required
@@ -43,7 +43,7 @@ const Step1UserInfo = ({ onNext, initialData }) => {
                 />
                 <input
                     type="text"
-                    placeholder="Vai trò (ví dụ: Nhân viên, Quản lý)"
+                    placeholder="Vai trò "
                     value={role}
                     onChange={(e) => setRole(e.target.value)}
                     required

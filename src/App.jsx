@@ -45,8 +45,8 @@ import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 import AdminRegisterPage from './pages/admin/AdminRegisterPage';
 import ForgotPasswordPage from './pages/admin/ForgotPasswordPage';
 import ResetPasswordPage from './pages/admin/ResetPasswordPage';
-import AdminLayout from './pages/admin/AdminLayout'; // Import layout mới
-import StatisticsPage from './pages/admin/StatisticsPage'; // Import trang thống kê
+import AdminLayout from './pages/admin/AdminLayout';
+import StatisticsPage from './pages/admin/StatisticsPage';
 import EventPage from './pages/EventPage';
 import AddUserEventPage from './pages/admin/AddUserEventPage';
 import Footer from './Footer/Footer';

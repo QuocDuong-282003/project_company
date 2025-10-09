@@ -1,4 +1,3 @@
-// --- START OF FILE AdminRegisterPage.jsx ---
 
 import React, { useState, useEffect } from 'react';
 import apiClient from '../../api/apiClient';
@@ -13,7 +12,6 @@ const AdminRegisterPage = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        // SỬA LẠI HOÀN TOÀN HÀM NÀY
         const checkFirstAdmin = async () => {
             try {
                 // Gọi tới endpoint mới, không yêu cầu xác thực
@@ -50,6 +48,7 @@ const AdminRegisterPage = () => {
             const response = await apiClient.post('/system-admin/register', formData);
             setMessage(response.data.message + " Đang chuyển về trang Quản lý Admin...");
             setTimeout(() => {
+
                 navigate('/system-admin/dashboard/admins');
             }, 2000); // Chuyển về trang quản lý admin sau 2 giây
         } catch (err) {
