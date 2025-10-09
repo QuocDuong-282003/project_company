@@ -1,9 +1,14 @@
 
+
+
+
+
 // import React, { useState, useEffect, useMemo, useCallback } from 'react';
 // import apiClient from '../../api/apiClient';
 // import './StatisticsPage.css';
-
+// import { toast } from 'react-toastify';
 // const Pagination = ({ currentPage, totalPages, onPageChange }) => {
+//     // ... component này giữ nguyên, không cần sửa ...
 //     const pageNumbers = []; const maxVisiblePages = 5; let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2)); let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1); if (endPage - startPage + 1 < maxVisiblePages) { startPage = Math.max(1, endPage - maxVisiblePages + 1); } for (let i = startPage; i <= endPage; i++) { pageNumbers.push(i); } if (totalPages <= 1) { return null; }
 //     return (
 //         <nav className="pagination-container">
@@ -34,22 +39,21 @@
 //     const fetchCheckInData = useCallback(async () => {
 //         try {
 //             setLoading(true);
-//             // Thêm cache buster để luôn lấy dữ liệu mới
 //             const cacheBuster = `?_t=${new Date().getTime()}`;
 //             const response = await apiClient.get('/system-admin/check-in-statistics' + cacheBuster);
 //             setCheckInData(response.data);
 //         } catch (error) {
 //             console.error('Failed to fetch check-in data:', error);
 //             if (error.response?.status === 401) {
-//                 alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+//                 toast.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
 //                 window.location.href = '/system-admin/login';
 //             } else {
-//                 alert('Lỗi khi tải dữ liệu điểm danh');
+//                 toast.error('Lỗi khi tải dữ liệu điểm danh');
 //             }
 //         } finally {
 //             setLoading(false);
 //         }
-//     }, []); // Bỏ dependency không cần thiết
+//     }, []);
 
 //     useEffect(() => {
 //         fetchCheckInData();
@@ -69,9 +73,11 @@
 //     }, []);
 
 //     // --- SỬA LẠI HOÀN TOÀN HÀM handleDeleteRecord ---
-//     const handleDeleteRecord = async (recordId) => {
+//     const handleDeleteRecord = async (recordToDelete) => {
+//         const recordId = recordToDelete.id || recordToDelete._id; // <-- SỬA CHÍNH Ở ĐÂY
+
 //         if (!recordId) {
-//             alert("Lỗi: Không tìm thấy ID của bản ghi.");
+//             toast.error("Lỗi: Không tìm thấy ID của bản ghi.");
 //             return;
 //         }
 
@@ -79,21 +85,18 @@
 //             try {
 //                 setDeleting(recordId);
 //                 await apiClient.delete(`/system-admin/check-in-statistics/${recordId}`);
-
-//                 // Cập nhật state ở client ngay lập tức
+// toast.success('Đã xóa bản ghi thành công !');
 //                 setCheckInData(prevData => {
-//                     const newData = prevData.filter(item => item.id !== recordId);
+//                     const newData = prevData.filter(item => (item.id || item._id) !== recordId); // <-- SỬA CHÍNH Ở ĐÂY
 //                     const newTotalPages = Math.ceil(newData.length / ITEMS_PER_PAGE);
 //                     if (currentPage > newTotalPages && newTotalPages > 0) {
 //                         setCurrentPage(newTotalPages);
 //                     }
 //                     return newData;
 //                 });
-
-//                 // Không cần alert vì giao diện đã tự cập nhật
 //             } catch (error) {
 //                 console.error('Delete error:', error);
-//                 alert('Lỗi khi xóa: ' + (error.response?.data?.detail || 'Lỗi không xác định'));
+//                 toast.error('Lỗi khi xóa: ' + (error.response?.data?.detail || 'Lỗi không xác định'));
 //             } finally {
 //                 setDeleting(null);
 //             }
@@ -108,10 +111,10 @@
 //                 await apiClient.delete('/system-admin/check-in-statistics');
 //                 setCheckInData([]);
 //                 setCurrentPage(1);
-//                 alert('Đã xóa tất cả bản ghi!');
+//                 toast.success('Đã xóa tất cả bản ghi!');
 //             } catch (error) {
 //                 console.error('Clear all error:', error);
-//                 alert('Lỗi khi xóa: ' + (error.response?.data?.detail || 'Lỗi không xác định'));
+//                 toast.error('Lỗi khi xóa: ' + (error.response?.data?.detail || 'Lỗi không xác định'));
 //                 fetchCheckInData();
 //             } finally {
 //                 setLoading(false);
@@ -119,12 +122,7 @@
 //         }
 //     };
 
-//     if (loading) return (
-//         <div className="loading-message">
-//             <div className="loading-spinner"></div>
-//             <h2>Đang tải dữ liệu...</h2>
-//         </div>
-//     );
+//     if (loading) return <div className="loading-message"><div className="loading-spinner"></div><h2>Đang tải dữ liệu...</h2></div>;
 
 //     return (
 //         <div className="statistics-page-container">
@@ -155,11 +153,11 @@
 //                             </thead>
 //                             <tbody>
 //                                 {currentTableData.map((item, index) => {
-//                                     // STT được tính lại ở frontend
 //                                     const overallIndex = (currentPage - 1) * ITEMS_PER_PAGE + index + 1;
-//                                     const isDeleting = deleting === item.id;
+//                                     const itemId = item.id || item._id; // <-- SỬA CHÍNH Ở ĐÂY
+//                                     const isDeleting = deleting === itemId;
 //                                     return (
-//                                         <tr key={item.id} className={isDeleting ? 'deleting' : ''}>
+//                                         <tr key={itemId} className={isDeleting ? 'deleting' : ''}>
 //                                             <td>{overallIndex}</td>
 //                                             <td>
 //                                                 {item.user_image_base64 ? (<img src={`data:image/jpeg;base64,${item.user_image_base64}`} alt={item.user_name} width="50" height="50" className="table-avatar" />) : (<div className="table-avatar-placeholder">?</div>)}
@@ -170,7 +168,7 @@
 //                                             <td>{item.user_position || '-'}</td>
 //                                             <td>{formatDateTime(item.check_in_time)}</td>
 //                                             <td>
-//                                                 <button onClick={() => handleDeleteRecord(item.id)} className="delete-btn" disabled={isDeleting}>
+//                                                 <button onClick={() => handleDeleteRecord(item)} className="delete-btn" disabled={isDeleting}> {/* <-- SỬA CHÍNH Ở ĐÂY */}
 //                                                     {isDeleting ? 'Đang xóa...' : 'Xóa'}
 //                                                 </button>
 //                                             </td>
@@ -192,15 +190,12 @@
 // export default StatisticsPage;
 
 
-
-// --- START OF FILE src/pages/admin/StatisticsPage.jsx (PHIÊN BẢN HOÀN THIỆN) ---
-
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import apiClient from '../../api/apiClient';
+import { toast } from 'react-toastify';
 import './StatisticsPage.css';
 
 const Pagination = ({ currentPage, totalPages, onPageChange }) => {
-    // ... component này giữ nguyên, không cần sửa ...
     const pageNumbers = []; const maxVisiblePages = 5; let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2)); let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1); if (endPage - startPage + 1 < maxVisiblePages) { startPage = Math.max(1, endPage - maxVisiblePages + 1); } for (let i = startPage; i <= endPage; i++) { pageNumbers.push(i); } if (totalPages <= 1) { return null; }
     return (
         <nav className="pagination-container">
@@ -237,10 +232,10 @@ const StatisticsPage = () => {
         } catch (error) {
             console.error('Failed to fetch check-in data:', error);
             if (error.response?.status === 401) {
-                alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
-                window.location.href = '/system-admin/login';
+                toast.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+                setTimeout(() => { window.location.href = '/system-admin/login'; }, 2000);
             } else {
-                alert('Lỗi khi tải dữ liệu điểm danh');
+                toast.error('Lỗi khi tải dữ liệu điểm danh');
             }
         } finally {
             setLoading(false);
@@ -264,12 +259,11 @@ const StatisticsPage = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }, []);
 
-    // --- SỬA LẠI HOÀN TOÀN HÀM handleDeleteRecord ---
     const handleDeleteRecord = async (recordToDelete) => {
-        const recordId = recordToDelete.id || recordToDelete._id; // <-- SỬA CHÍNH Ở ĐÂY
+        const recordId = recordToDelete.id || recordToDelete._id;
 
         if (!recordId) {
-            alert("Lỗi: Không tìm thấy ID của bản ghi.");
+            toast.error("Lỗi: Không tìm thấy ID của bản ghi.");
             return;
         }
 
@@ -278,8 +272,10 @@ const StatisticsPage = () => {
                 setDeleting(recordId);
                 await apiClient.delete(`/system-admin/check-in-statistics/${recordId}`);
 
+                toast.success('Đã xóa bản ghi thành công!');
+
                 setCheckInData(prevData => {
-                    const newData = prevData.filter(item => (item.id || item._id) !== recordId); // <-- SỬA CHÍNH Ở ĐÂY
+                    const newData = prevData.filter(item => (item.id || item._id) !== recordId);
                     const newTotalPages = Math.ceil(newData.length / ITEMS_PER_PAGE);
                     if (currentPage > newTotalPages && newTotalPages > 0) {
                         setCurrentPage(newTotalPages);
@@ -288,13 +284,12 @@ const StatisticsPage = () => {
                 });
             } catch (error) {
                 console.error('Delete error:', error);
-                alert('Lỗi khi xóa: ' + (error.response?.data?.detail || 'Lỗi không xác định'));
+                toast.error('Lỗi khi xóa: ' + (error.response?.data?.detail || 'Lỗi không xác định'));
             } finally {
                 setDeleting(null);
             }
         }
     };
-    // --- KẾT THÚC SỬA ---
 
     const handleClearAll = async () => {
         if (window.confirm('Bạn có chắc muốn xóa TẤT CẢ bản ghi điểm danh? Hành động này không thể hoàn tác!')) {
@@ -303,10 +298,10 @@ const StatisticsPage = () => {
                 await apiClient.delete('/system-admin/check-in-statistics');
                 setCheckInData([]);
                 setCurrentPage(1);
-                alert('Đã xóa tất cả bản ghi!');
+                toast.success('Đã xóa tất cả bản ghi!');
             } catch (error) {
                 console.error('Clear all error:', error);
-                alert('Lỗi khi xóa: ' + (error.response?.data?.detail || 'Lỗi không xác định'));
+                toast.error('Lỗi khi xóa: ' + (error.response?.data?.detail || 'Lỗi không xác định'));
                 fetchCheckInData();
             } finally {
                 setLoading(false);
@@ -346,7 +341,7 @@ const StatisticsPage = () => {
                             <tbody>
                                 {currentTableData.map((item, index) => {
                                     const overallIndex = (currentPage - 1) * ITEMS_PER_PAGE + index + 1;
-                                    const itemId = item.id || item._id; // <-- SỬA CHÍNH Ở ĐÂY
+                                    const itemId = item.id || item._id;
                                     const isDeleting = deleting === itemId;
                                     return (
                                         <tr key={itemId} className={isDeleting ? 'deleting' : ''}>
@@ -360,7 +355,7 @@ const StatisticsPage = () => {
                                             <td>{item.user_position || '-'}</td>
                                             <td>{formatDateTime(item.check_in_time)}</td>
                                             <td>
-                                                <button onClick={() => handleDeleteRecord(item)} className="delete-btn" disabled={isDeleting}> {/* <-- SỬA CHÍNH Ở ĐÂY */}
+                                                <button onClick={() => handleDeleteRecord(item)} className="delete-btn" disabled={isDeleting}>
                                                     {isDeleting ? 'Đang xóa...' : 'Xóa'}
                                                 </button>
                                             </td>

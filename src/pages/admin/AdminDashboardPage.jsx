@@ -229,6 +229,8 @@ import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 
 import './AdminDashboardPage.css';
+import { toast } from 'react-toastify';
+
 
 const EditUserForm = ({ user, onSave, onCancel }) => {
     const [formData, setFormData] = useState({
@@ -343,7 +345,8 @@ const AdminDashboardPage = ({ view }) => {
         const userName = userToDelete.name;
 
         if (!userId) {
-            alert("Lỗi: Không tìm thấy ID của người dùng.");
+            //   alert("Lỗi: Không tìm thấy ID của người dùng.");
+            toast.error('Lỗi không tìm thấy ID của người dùng ! ');
             return;
         }
 
@@ -353,10 +356,12 @@ const AdminDashboardPage = ({ view }) => {
                     ? `/system-admin/admins/${userId}`
                     : `/system-admin/users/${userId}`;
                 await apiClient.delete(deleteEndpoint);
-                alert("Xóa thành công!");
+                toast.success("Xóa thành công!");
                 setAllData(currentData => currentData.filter(item => (item.id || item._id) !== userId));
             } catch (error) {
-                alert("Xóa thất bại: " + (error.response?.data?.detail || "Lỗi không xác định"));
+                const errorMessage = error.response?.data?.detail || "Lỗi không xác định";
+
+                toast.error(`Xóa thất bại: ${errorMessage}`);
             }
         }
     };
@@ -367,11 +372,12 @@ const AdminDashboardPage = ({ view }) => {
                 ? `/system-admin/admins/${userId}`
                 : `/system-admin/users/${userId}`;
             const response = await apiClient.put(updateEndpoint, updateData);
-            alert("Cập nhật thành công!");
+            toast.success("Cập nhật thành công!");
             setEditingUser(null);
             setAllData(currentData => currentData.map(item => ((item.id || item._id) === userId ? response.data : item)));
         } catch (error) {
-            alert("Cập nhật thất bại: " + (error.response?.data?.detail || "Lỗi không xác định"));
+            const errorMessage = error.response?.data?.detail || "Lỗi không xác định";
+            toast.error(`Cập nhật thất bại: ${errorMessage}`); // <-- 2. THAY THẾ ALERT
         }
     };
 

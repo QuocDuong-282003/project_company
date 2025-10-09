@@ -50,6 +50,9 @@ import StatisticsPage from './pages/admin/StatisticsPage';
 import EventPage from './pages/EventPage';
 import AddUserEventPage from './pages/admin/AddUserEventPage';
 import Footer from './Footer/Footer';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 const ClientLayout = ({ children }) => (
   <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
     <Header />
@@ -64,6 +67,18 @@ const ClientLayout = ({ children }) => (
 function App() {
   return (
     <div className="app-wrapper">
+      <ToastContainer
+        position="top-right"
+        autoClose={3000} // Tự động đóng sau 3 giây
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored" // Dùng theme màu cho đẹp
+      />
       <main className="content-wrapper">
         <Routes>
           {/* Public Routes */}
