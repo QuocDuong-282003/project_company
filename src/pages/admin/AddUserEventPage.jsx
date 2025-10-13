@@ -237,7 +237,7 @@ const AddUserEventPage = () => {
                 role: user.role || '',
                 email: user.email || '',
                 image: null,
-                existingImage: user.face_image_base64 || null // <-- Lưu ảnh hiện tại
+                existingImage: user.face_image_base_64 || null // <-- Lưu ảnh hiện tại
             });
             // --- SỬA LỖI CHÍNH Ở ĐÂY ---
             setEditId(user.id || user._id);
@@ -345,8 +345,8 @@ const AddUserEventPage = () => {
                                     <tr key={itemId || idx}>
                                         <td>{idx + 1}</td>
                                         <td>
-                                            {user.face_image_base64 ? (
-                                                <img src={`data:image/jpeg;base64,${user.face_image_base64}`} alt={user.name} width={48} height={48} style={{ borderRadius: '50%' }} />
+                                            {user.face_image_base_64 ? (
+                                                <img src={`data:image/jpeg;base64,${user.face_image_base_64}`} alt={user.name} width={48} height={48} style={{ borderRadius: '50%' }} />
                                             ) : (
                                                 <div className="table-avatar-placeholder">?</div>
                                             )}

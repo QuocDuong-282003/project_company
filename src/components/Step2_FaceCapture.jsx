@@ -88,8 +88,8 @@ const Step2FaceCapture = ({ onCapture, onBack }) => {
                     audio={false}
                     ref={webcamRef}
                     screenshotFormat="image/jpeg"
-                    width={640}
-                    height={480}
+                    width={550}
+                    height={400}
                     style={{ border: `4px solid ${webcamBorderColor}`, borderRadius: '8px' }}
                 />
                 <div className={`feedback-box ${feedback.status === 'OK' ? 'ok' : 'error'}`}>

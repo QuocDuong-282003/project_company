@@ -297,12 +297,50 @@ const AdminDashboardPage = ({ view }) => {
         }
     }, []);
 
+    // const formatDate = (dateString) => {
+    //     if (!dateString) return '';
+    //     const date = new Date(dateString);
+    //     return `${date.toLocaleTimeString('vi-VN')} ${date.toLocaleDateString('vi-VN')}`;
+    // };
+    // const formatDate = (dateString) => {
+    //     if (!dateString) return '';
+
+    //     const date = new Date(dateString);
+
+    //     // Kiểm tra xem date có hợp lệ không
+    //     if (isNaN(date.getTime())) {
+    //         return 'Ngày không hợp lệ';
+    //     }
+
+    //     const options = {
+    //         hour: '2-digit',
+    //         minute: '2-digit',
+    //         day: '2-digit',
+    //         month: '2-digit',
+    //         year: 'numeric',
+
+    //         timeZone: 'Asia/Ho_Chi_Minh'
+    //     };
+
+
+    //     return new Intl.DateTimeFormat('vi-VN', options).format(date).replace(',', '');
+    // };
+    // Dùng hàm này trong các file .jsx
     const formatDate = (dateString) => {
         if (!dateString) return '';
-        const date = new Date(dateString);
-        return `${date.toLocaleTimeString('vi-VN')} ${date.toLocaleDateString('vi-VN')}`;
+        try {
+            const date = new Date(dateString);
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            const seconds = String(date.getSeconds()).padStart(2, '0');
+            return `${hours}:${minutes}:${seconds} ${day}/${month}/${year}`;
+        } catch (e) {
+            return "Ngày không hợp lệ";
+        }
     };
-
     const fetchData = useCallback(async () => {
         const endpoint = view === 'admins' ? '/system-admin/admins' : '/system-admin/users';
         try {
@@ -416,8 +454,8 @@ const AdminDashboardPage = ({ view }) => {
                                         <tr key={itemId}>
                                             <td>{overallIndex}</td>
                                             <td>
-                                                {item.face_image_base64 ? (
-                                                    <img src={`data:image/jpeg;base64,${item.face_image_base64}`} alt={item.name} width="50" height="50" className="table-avatar" />
+                                                {item.face_image_base_64 ? (
+                                                    <img src={`data:image/jpeg;base64,${item.face_image_base_64}`} alt={item.name} width="50" height="50" className="table-avatar" />
                                                 ) : (
                                                     <div className="table-avatar-placeholder">{item.role === 'super_admin' ? 'SA' : (view === 'admins' ? 'AD' : item.role.charAt(0).toUpperCase())}</div>
                                                 )}

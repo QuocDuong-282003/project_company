@@ -31,7 +31,7 @@ const LoginPage = () => {
                 case 'SUCCESS':
                     setErrorMessage('');
                     setRecognitionResult({ name: data.name, box: data.box });
-                    setLoggedInUser({ name: data.name, role: data.role, image_base_64: data.image_base_64 });
+                    setLoggedInUser({ name: data.name, role: data.role, image_base_64: data.face_image_base_64 });
                     break;
 
                 case 'MULTIPLE_FACES':
