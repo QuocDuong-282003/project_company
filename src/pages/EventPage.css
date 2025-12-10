@@ -24,3 +24,40 @@
     color: rgb(46, 211, 90);
     font-weight: 400;
 }
+
+/* Responsive cho event page và webcam trên mobile */
+@media (max-width: 600px) {
+    .event-page-container {
+        max-width: 100vw;
+        margin: 12px auto;
+        padding: 16px 4px;
+        border-radius: 8px;
+    }
+
+    .webcam-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        margin-bottom: 16px;
+    }
+
+    .webcam-wrapper video {
+        width: 100vw !important;
+        max-width: 98vw !important;
+        height: auto !important;
+        margin: 0 auto;
+        display: block;
+        border-radius: 8px;
+    }
+
+    .event-page-container h2 {
+        font-size: 1.3rem;
+        margin-bottom: 12px;
+    }
+
+    .event-welcome-message {
+        font-size: 1em;
+        padding: 8px 0;
+    }
+}

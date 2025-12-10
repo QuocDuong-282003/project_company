@@ -8,7 +8,6 @@ import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    {/* Component <App /> phải được bọc trong <BrowserRouter> */}
     <BrowserRouter>
       <App />
     </BrowserRouter>

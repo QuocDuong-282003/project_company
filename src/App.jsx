@@ -1,36 +1,4 @@
-// import React from 'react';
-// import { Routes, Route } from 'react-router-dom';
-// import Header from './components/Header';
-// import HomePage from './pages/HomePage';
-// import RegistrationPage from './pages/RegistrationPage';
-// import LoginPage from './pages/LoginPage';
-// // Import các trang admin
-// import AdminLoginPage from './pages/admin/AdminLoginPage';
-// import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 
-
-// function App() {
-//   return (
-//     <div className="app-wrapper">
-//       <Header />
-//       <main className="content-wrapper">
-//         <Routes>
-//           {/* Public Routes */}
-//           <Route path="/" element={<HomePage />} />
-//           <Route path="/register" element={<RegistrationPage />} />
-//           <Route path="/login" element={<LoginPage />} />
-
-//           {/* Admin Routes */}
-//           <Route path="/system-admin" element={<AdminLoginPage />} /> {/* Route gốc cho admin */}
-//           <Route path="/system-admin/login" element={<AdminLoginPage />} />
-//           <Route path="/system-admin/dashboard" element={<AdminDashboardPage />} />
-//         </Routes>
-//       </main>
-//     </div>
-//   );
-// }
-
-// export default App;
 
 
 import React from 'react';
@@ -39,7 +7,6 @@ import Header from './components/Header';
 import HomePage from './pages/HomePage';
 import RegistrationPage from './pages/RegistrationPage';
 import LoginPage from './pages/LoginPage';
-// Import các trang admin
 import AdminLoginPage from './pages/admin/AdminLoginPage';
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 import AdminRegisterPage from './pages/admin/AdminRegisterPage';
@@ -69,7 +36,7 @@ function App() {
     <div className="app-wrapper">
       <ToastContainer
         position="top-right"
-        autoClose={3000} // Tự động đóng sau 3 giây
+        autoClose={3000}
         hideProgressBar={false}
         newestOnTop={false}
         closeOnClick
@@ -77,12 +44,14 @@ function App() {
         pauseOnFocusLoss
         draggable
         pauseOnHover
-        theme="colored" // Dùng theme màu cho đẹp
+        theme="colored"
       />
       <main className="content-wrapper">
         <Routes>
           {/* Public Routes */}
-          <Route path="/" element={<ClientLayout><HomePage /></ClientLayout>} />
+          <Route path="/" element={<Navigate to="/event" replace />} />
+
+          <Route path="/home" element={<ClientLayout><HomePage /></ClientLayout>} />
           <Route path="/register" element={<ClientLayout><RegistrationPage /></ClientLayout>} />
           <Route path="/login" element={<ClientLayout><LoginPage /></ClientLayout>} />
           <Route path="/event" element={<ClientLayout><EventPage /></ClientLayout>} />

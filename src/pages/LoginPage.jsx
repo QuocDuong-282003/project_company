@@ -9,7 +9,7 @@ const LoginPage = () => {
     const [loggedInUser, setLoggedInUser] = useState(null);
     const [errorMessage, setErrorMessage] = useState('');
     const recognitionIntervalRef = useRef(null);
-    const [isPaused, setIsPaused] = useState(false); // State để tạm dừng quét
+    const [isPaused, setIsPaused] = useState(false);
 
     const captureAndRecognize = useCallback(async () => {
         if (!webcamRef.current || loggedInUser || isPaused) return;
@@ -35,9 +35,9 @@ const LoginPage = () => {
                     break;
 
                 case 'MULTIPLE_FACES':
-                    setErrorMessage(message); // Hiển thị thông báo lỗi
+                    setErrorMessage(message);
                     setRecognitionResult({ name: null, box: null });
-                    setIsPaused(true); // Dừng quét lại
+                    setIsPaused(true);
                     break;
 
                 case 'UNKNOWN':
@@ -58,7 +58,7 @@ const LoginPage = () => {
             console.error("Lỗi nhận diện đăng nhập:", errorDetail);
             setErrorMessage(errorDetail);
             setRecognitionResult({ name: null, box: null });
-            setIsPaused(true); // Dừng quét khi có lỗi kết nối
+            setIsPaused(true);
         }
     }, [loggedInUser, isPaused]);
 

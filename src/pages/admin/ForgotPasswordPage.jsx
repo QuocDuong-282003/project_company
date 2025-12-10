@@ -1,4 +1,3 @@
-// src/pages/admin/ForgotPasswordPage.jsx
 import React, { useState } from 'react';
 import apiClient from '../../api/apiClient';
 import { Link } from 'react-router-dom';

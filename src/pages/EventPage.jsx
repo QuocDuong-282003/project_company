@@ -7,7 +7,6 @@ const EventPage = () => {
     const [message, setMessage] = useState(null);
     const [processing, setProcessing] = useState(false);
 
-    // Mở webcam khi vào trang
     useEffect(() => {
         const getWebcam = async () => {
             try {
@@ -27,7 +26,6 @@ const EventPage = () => {
         };
     }, []);
 
-    // Hàm chụp ảnh từ webcam
     const captureImage = () => {
         if (!videoRef.current) return null;
         const canvas = document.createElement('canvas');
@@ -38,6 +36,50 @@ const EventPage = () => {
         return canvas.toDataURL('image/jpeg');
     };
 
+
+    //     let intervalId;
+    //     if (!processing) {
+    //         intervalId = setInterval(async () => {
+    //             setProcessing(true);
+    //             const imageDataUrl = captureImage();
+    //             if (!imageDataUrl) {
+    //                 setProcessing(false);
+    //                 return;
+    //             }
+    //             const blob = await (await fetch(imageDataUrl)).blob();
+    //             const file = new File([blob], "snapshot.jpg", { type: "image/jpeg" });
+    //             const formData = new FormData();
+    //             formData.append('file', file);
+
+    //             try {
+    //                 const res = await apiClient.post('/event-recognize', formData);
+    //                 if (res.data.status === "SUCCESS") {
+    //                     setMessage(
+    //                         <>Chào mừng <strong>{res.data.data.name}</strong> tới sự kiện!</>
+    //                     );
+    //                     setTimeout(() => {
+    //                         setMessage(null);
+    //                         setProcessing(false);
+    //                     }, 2000);
+    //                 } else {
+    //                     setMessage('');
+    //                     setProcessing(false);
+    //                 }
+    //             } catch (error) {
+    //                 console.error("Lỗi API:", error); 
+    //                 setMessage('Lỗi kết nối máy chủ!');
+    //                 // setMessage('Lỗi nhận diện!');
+    //                 setProcessing(false);
+    //             }
+    //         }, 2000);
+    //     }
+    //     return () => clearInterval(intervalId);
+    // }, [processing]);
+    // FILE: EventPage.js
+
+    // ... (giữ nguyên các phần code khác) ...
+
+    // === HÃY DÁN TOÀN BỘ ĐOẠN CODE NÀY THAY THẾ CHO useEffect THỨ HAI CỦA BẠN ===
     useEffect(() => {
         let intervalId;
         if (!processing) {
@@ -55,23 +97,32 @@ const EventPage = () => {
 
                 try {
                     const res = await apiClient.post('/event-recognize', formData);
+
                     if (res.data.status === "SUCCESS") {
                         setMessage(
                             <>Chào mừng <strong>{res.data.data.name}</strong> tới sự kiện!</>
                         );
+
                         setTimeout(() => {
                             setMessage(null);
                             setProcessing(false);
-                        }, 1000);
+                        }, 2000);
+
                     } else {
-                        setMessage('');
                         setProcessing(false);
                     }
-                } catch {
-                    setMessage('Lỗi nhận diện!');
-                    setProcessing(false);
+
+                } catch (error) {
+                    console.error("Lỗi API:", error);
+                    setMessage('Lỗi kết nối máy chủ!');
+
+                    setTimeout(() => {
+                        setMessage(null);
+                        setProcessing(false);
+                    }, 2000);
                 }
-            }, 1000);
+
+            }, 2000);
         }
         return () => clearInterval(intervalId);
     }, [processing]);
@@ -89,12 +140,24 @@ const EventPage = () => {
                     style={{ borderRadius: 12, border: '1px solid green' }}
                 />
             </div>
+            {!processing && (
+                <div style={{
+                    marginTop: 12,
+                    color: '#1976d2',
+                    fontWeight: 500,
+                    fontSize: '1.05em',
+                    textAlign: 'center'
+                }}>
+                    Vui lòng giữ nguyên trong vòng 2 giây, đang chuẩn bị quét...
+                </div>
+            )}
             {message && (
                 <div className="event-welcome-message">
                     {message}
                 </div>
             )}
         </div>
+
     );
 };
 

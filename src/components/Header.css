@@ -38,3 +38,29 @@
     background-color: #007bff;
     color: white;
 }
+
+/* Responsive cho header trên mobile */
+@media (max-width: 600px) {
+    .app-header {
+        align-items: stretch;
+        height: auto;
+        padding: 12px 16px;
+    }
+
+    .logo {
+        font-size: 20px;
+        margin-bottom: 8px;
+        text-align: center;
+    }
+
+    .main-nav {
+        justify-content: center;
+        gap: 8px;
+        margin-bottom: 8px;
+    }
+
+    .nav-link {
+        padding: 8px 10px;
+        font-size: 15px;
+    }
+}

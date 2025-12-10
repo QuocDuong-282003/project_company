@@ -14,10 +14,8 @@ const AdminRegisterPage = () => {
     useEffect(() => {
         const checkFirstAdmin = async () => {
             try {
-                // Gọi tới endpoint mới, không yêu cầu xác thực
                 const response = await apiClient.get('/system-admin/setup-status');
 
-                // Dựa vào kết quả trả về để set state
                 if (response.data.super_admin_exists) {
                     setIsFirstAdmin(false);
                     setFormData((prev) => ({ ...prev, role: 'admin' }));
@@ -26,7 +24,6 @@ const AdminRegisterPage = () => {
                     setFormData((prev) => ({ ...prev, role: 'super_admin' }));
                 }
             } catch (err) {
-                // Nếu có lỗi mạng, tạm coi như chưa có super admin
                 console.error("Error checking setup status:", err);
                 setIsFirstAdmin(true);
                 setFormData((prev) => ({ ...prev, role: 'super_admin' }));
@@ -39,7 +36,6 @@ const AdminRegisterPage = () => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    // ...existing code...
     const handleSubmit = async (e) => {
         e.preventDefault();
         setMessage('');
@@ -50,7 +46,7 @@ const AdminRegisterPage = () => {
             setTimeout(() => {
 
                 navigate('/system-admin/dashboard/admins');
-            }, 2000); // Chuyển về trang quản lý admin sau 2 giây
+            }, 2000);
         } catch (err) {
             setError(err.response?.data?.detail || 'Đã có lỗi xảy ra.');
         }
@@ -71,7 +67,6 @@ const AdminRegisterPage = () => {
                     <input type="email" name="email" placeholder="Email" value={formData.email} onChange={handleChange} required />
                 </div>
                 <div className="form-group">
-                    {/* Nếu là lần đầu thì cho chọn, còn lại thì chỉ hiển thị role admin, không cho chọn */}
                     {isFirstAdmin ? (
                         <select
                             name="role"
@@ -107,4 +102,3 @@ const AdminRegisterPage = () => {
 
 export default AdminRegisterPage;
 
-// --- END OF FILE AdminRegisterPage.jsx ---

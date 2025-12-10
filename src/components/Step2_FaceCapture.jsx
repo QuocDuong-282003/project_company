@@ -6,14 +6,14 @@ const Step2FaceCapture = ({ onCapture, onBack }) => {
     const webcamRef = useRef(null);
     const [feedback, setFeedback] = useState({ status: 'INIT', message: 'Chuẩn bị camera...' });
     const [isReady, setIsReady] = useState(false);
-    const [countdown, setCountdown] = useState(3); // Đặt thời gian đếm ngược
+    const [countdown, setCountdown] = useState(3);
     const timerRef = useRef(null);
     const countdownIntervalRef = useRef(null);
     const validationIntervalRef = useRef(null);
 
     const startCountdown = useCallback((imageSrc) => {
         setIsReady(true);
-        setCountdown(3); // Reset lại số đếm
+        setCountdown(3);
 
         countdownIntervalRef.current = setInterval(() => {
             setCountdown(prev => prev - 1);
@@ -21,8 +21,8 @@ const Step2FaceCapture = ({ onCapture, onBack }) => {
 
         timerRef.current = setTimeout(() => {
             clearInterval(countdownIntervalRef.current);
-            onCapture(imageSrc); // Chụp ảnh và chuyển bước
-        }, 3000); // SỬA ĐỔI: Thời gian chụp là 3 giây
+            onCapture(imageSrc);
+        }, 3000);
     }, [onCapture]);
 
     const stopCountdown = useCallback(() => {

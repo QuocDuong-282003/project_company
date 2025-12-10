@@ -1,4 +1,4 @@
-// src/pages/RegistrationPage.jsx (Phiên bản cuối cùng)
+
 
 import React, { useState } from "react";
 import apiClient from "../api/apiClient";
@@ -12,10 +12,14 @@ const RegistrationPage = () => {
     const initialFormData = { name: '', user_code: '', email: '', role: '', capturedImage: null };
     const [formData, setFormData] = useState(initialFormData);
 
+    const [successMessage, setSuccessMessage] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+
     const nextStep = () => setStep(prev => prev + 1);
     const prevStep = () => setStep(prev => prev - 1);
 
     const handleUserInfoSumbit = (data) => {
+        setSuccessMessage('');
         setFormData(prev => ({ ...prev, ...data }));
         nextStep();
     };
@@ -26,33 +30,43 @@ const RegistrationPage = () => {
     };
 
     const handleFinalSubmit = async () => {
+        setIsLoading(true);
         const { user_code, name, email, role, capturedImage } = formData;
-        const blob = await fetch(capturedImage).then(res => res.blob());
-        const file = new File([blob], `${user_code}.jpg`, { type: 'image/jpeg' });
-
-        const submissionData = new FormData();
-        submissionData.append('name', name);
-        submissionData.append('user_code', user_code);
-        submissionData.append('email', email);
-        submissionData.append('role', role);
-        submissionData.append('file', file);
 
         try {
-            const response = await apiClient.post('/register', submissionData);
-            alert(response.data.message);
+            const blob = await fetch(capturedImage).then(res => res.blob());
+            const file = new File([blob], `${user_code}.jpg`, { type: 'image/jpeg' });
+
+            const submissionData = new FormData();
+            submissionData.append('name', name);
+            submissionData.append('user_code', user_code);
+            submissionData.append('email', email);
+            submissionData.append('role', role);
+            submissionData.append('file', file);
+
+            await apiClient.post('/register', submissionData);
+
+            setSuccessMessage('Bạn đã đăng ký thành công. Bạn có thể đăng nhập ngay bây giờ.');
+
+            // Reset form 
             setStep(1);
             setFormData(initialFormData);
+
         } catch (error) {
             alert('Đăng ký thất bại: ' + (error.response?.data?.detail || error.message));
-            setStep(1);
-            setFormData(initialFormData);
+        } finally {
+            setIsLoading(false);
         }
     };
 
-    // === SỬA ĐỔI QUAN TRỌNG ===
-    // Thêm lại thẻ <div className="page-container"> để làm nền và căn giữa
     return (
         <div className="page-container">
+            {successMessage && (
+                <div className="success-message">
+                    {successMessage}
+                </div>
+            )}
+
             {(() => {
                 switch (step) {
                     case 1:
@@ -60,9 +74,9 @@ const RegistrationPage = () => {
                     case 2:
                         return <Step2FaceCapture onCapture={handleFaceCapture} onBack={prevStep} />;
                     case 3:
-                        return <Step3Confirm formData={formData} onBack={prevStep} onSubmit={handleFinalSubmit} />;
+                        return <Step3Confirm formData={formData} onBack={prevStep} onSubmit={handleFinalSubmit} isLoading={isLoading} />;
                     default:
-                        return <div>Đang tải lại trang đăng ký...</div>;
+                        return <Step1UserInfo onNext={handleUserInfoSumbit} initialData={formData} />;
                 }
             })()}
         </div>

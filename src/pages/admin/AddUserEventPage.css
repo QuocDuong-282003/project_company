@@ -1,5 +1,3 @@
-/* --- START OF FILE src/pages/admin/AddUserEventPage.css (PHIÊN BẢN CẢI TIẾN) --- */
-
 .add-user-event-container {
     max-width: 1200px;
     margin: 40px auto;
@@ -17,7 +15,6 @@
     font-weight: 700;
 }
 
-/* --- CÁC THAY ĐỔI CHÍNH BẮT ĐẦU TỪ ĐÂY --- */
 
 .modal-overlay {
     position: fixed;
@@ -31,7 +28,6 @@
     justify-content: center;
     z-index: 1000;
     padding: 20px;
-    /* Thêm padding để modal không bị dính vào cạnh màn hình nhỏ */
 }
 
 .modal-content {
@@ -40,16 +36,13 @@
     min-width: 420px;
     max-width: 520px;
     width: 100%;
-    /* Đảm bảo modal co giãn trên màn hình nhỏ */
     box-shadow: 0 4px 32px rgba(0, 0, 0, 0.18);
     position: relative;
     animation: modalFadeIn 0.25s;
 
-    /* 1. Thiết lập Flexbox và Chiều cao tối đa */
     display: flex;
     flex-direction: column;
     max-height: 90vh;
-    /* Giới hạn chiều cao của modal là 90% chiều cao màn hình */
 }
 
 .modal-content h3 {
@@ -57,43 +50,33 @@
     font-size: 1.35rem;
     color: #34495e;
     font-weight: 700;
-    /* Tách h3 ra khỏi vùng cuộn */
     padding: 38px 32px 22px 32px;
     border-bottom: 1px solid #eee;
     flex-shrink: 0;
-    /* Không cho phép h3 co lại */
     margin: 0;
 }
 
-/* 2. Tạo vùng cuộn cho form */
 .add-user-event-form {
     display: flex;
     flex-direction: column;
     gap: 14px;
     margin-bottom: 0;
-    /* Thêm vùng cuộn */
     overflow-y: auto;
-    /* Thêm thanh cuộn dọc khi nội dung quá dài */
     padding: 24px 32px;
-    /* Di chuyển padding vào trong form */
 }
 
-/* 3. Giữ cố định các nút bấm */
 .button-group {
     display: flex;
     justify-content: flex-end;
     gap: 12px;
-    /* Tách button-group ra khỏi vùng cuộn */
     padding: 20px 32px 28px 32px;
     border-top: 1px solid #eee;
     background-color: #f9fafb;
     border-bottom-left-radius: 18px;
     border-bottom-right-radius: 18px;
     flex-shrink: 0;
-    /* Không cho phép các nút co lại */
 }
 
-/* --- CÁC THAY ĐỔI PHỤ ĐỂ GIAO DIỆN ĐẸP HƠN --- */
 
 .existing-image-preview {
     display: flex;
@@ -168,8 +151,6 @@
     background: #607d8b;
 }
 
-/* --- CÁC CSS CŨ KHÁC GIỮ NGUYÊN --- */
-/* ... (tất cả các style khác cho table, nút bấm, v.v. giữ nguyên ở đây) ... */
 
 @keyframes modalFadeIn {
     from {
@@ -301,4 +282,14 @@
 
 .action-btn.delete:hover {
     background: #c53030;
+}
+
+.sticky-header {
+    position: sticky;
+    top: 0;
+    background: #fff;
+    z-index: 10;
+    padding-top: 24px;
+    padding-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }

@@ -1,4 +1,3 @@
-// src/pages/admin/ResetPasswordPage.jsx
 import React, { useState, useEffect } from 'react';
 import apiClient from '../../api/apiClient';
 import { useNavigate, useLocation } from 'react-router-dom';

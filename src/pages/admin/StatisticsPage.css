@@ -257,3 +257,23 @@
         font-size: 14px;
     }
 }
+
+.export-btn {
+    background: #38a169;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    margin-left: 8px;
+}
+
+.export-btn:hover:not(:disabled) {
+    background: #2f855a;
+}
+
+.export-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
