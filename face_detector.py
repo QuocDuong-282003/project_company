@@ -2,7 +2,6 @@ import cv2
 import numpy as np
 import os
 
-# Đường dẫn tới model
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MODEL_DIR = os.path.join(BASE_DIR, "models")
 
@@ -26,15 +25,14 @@ def detect_faces_opencv(image):
     for i in range(0, detections.shape[2]):
         confidence = detections[0, 0, i, 2]
 
-        if confidence > 0.5:  # ngưỡng tin cậy
+        if confidence > 0.5: 
             box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])
             (startX, startY, endX, endY) = box.astype("int")
 
-            # Đảm bảo tọa độ hợp lệ
+    
             startX, startY = max(0, startX), max(0, startY)
             endX, endY = min(w - 1, endX), min(h - 1, endY)
 
-            # Đổi format về (top, right, bottom, left) cho face_recognition
             face_locations.append((startY, endX, endY, startX))
 
     return face_locations
